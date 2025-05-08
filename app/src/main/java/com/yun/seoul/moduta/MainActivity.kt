@@ -32,8 +32,8 @@ class MainActivity : AppCompatActivity() {
             main = mainViewModel
         }
 
-        setSupportActionBar(binding.icToolbar.toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+        setSupportActionBar(binding.toolbar)
+//        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
 
@@ -54,7 +54,13 @@ class MainActivity : AppCompatActivity() {
 //                visibility = if(isTopLevelDestination) View.VISIBLE else View.GONE
 //            }
 //        }
-
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if(destination.id == R.id.HomeFragment){
+                supportActionBar?.hide()
+            } else {
+                supportActionBar?.show()
+            }
+        }
 
         // 네비게이션 바 색상을 투명하게 설정
         window.navigationBarColor = Color.WHITE

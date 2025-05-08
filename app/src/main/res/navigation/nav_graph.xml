@@ -7,9 +7,26 @@
 
     <fragment
         android:id="@+id/HomeFragment"
-        tools:layout="@layout/fragment_home"
         android:name="com.yun.seoul.moduta.ui.home.HomeFragment"
-        android:label="@string/action_home" >
+        android:label="@string/action_home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_HomeFragment_to_weatherDetailFragment"
+            app:destination="@id/weatherDetailFragment" />
+        <action
+            android:id="@+id/action_HomeFragment_to_busMapFragment"
+            app:destination="@id/busMapFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/weatherDetailFragment"
+        android:name="com.yun.seoul.moduta.ui.weather.WeatherDetailFragment"
+        android:label="@string/action_weather_detail"
+        tools:layout="@layout/fragment_weather_detail" />
+
+    <fragment
+        tools:layout="@layout/fragment_bus_map"
+        android:id="@+id/busMapFragment"
+        android:name="com.yun.seoul.moduta.ui.bus.BusMapFragment"
+        android:label="@string/action_bus_map" />
 
 </navigation>

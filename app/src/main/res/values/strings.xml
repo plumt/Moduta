@@ -2,4 +2,6 @@
     <string name="app_name">Moduta</string>
 
     <string name="action_home">Home</string>
+    <string name="action_weather_detail">Weather</string>
+    <string name="action_bus_map">Bus</string>
 </resources>
