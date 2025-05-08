@@ -25,7 +25,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setStatusBarColor(requireActivity().window, Color.WHITE)
+//        setStatusBarColor(requireActivity().window, Color.WHITE)
 
         viewModel.getNowWeather()
 

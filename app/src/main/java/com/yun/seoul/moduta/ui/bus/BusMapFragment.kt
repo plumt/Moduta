@@ -3,6 +3,11 @@ package com.yun.seoul.moduta.ui.bus
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import com.kakao.vectormap.KakaoMap
@@ -10,6 +15,7 @@ import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.yun.seoul.moduta.R
 import com.yun.seoul.moduta.BR
+import com.yun.seoul.moduta.MainActivity
 import com.yun.seoul.moduta.base.BaseFragment
 import com.yun.seoul.moduta.databinding.FragmentBusMapBinding
 import dagger.hilt.android.AndroidEntryPoint

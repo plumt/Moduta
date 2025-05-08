@@ -3,9 +3,14 @@ package com.yun.seoul.moduta
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.iterator
+import androidx.core.view.updatePadding
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -24,7 +29,12 @@ class MainActivity : AppCompatActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT) // light causes internally enforce the navigation bar to be fully transparent
+        )
         super.onCreate(savedInstanceState)
+
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.run {
@@ -62,15 +72,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 네비게이션 바 색상을 투명하게 설정
-        window.navigationBarColor = Color.WHITE
-
         // 전체화면 관련(상태바)
-//        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
-//            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
-//            v.updatePadding(insets.left, 0, insets.right, 0)
-//            WindowInsetsCompat.CONSUMED
-//        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            v.updatePadding(insets.left, insets.top, insets.right, 0)
+            WindowInsetsCompat.CONSUMED
+        }
 
     }
 
