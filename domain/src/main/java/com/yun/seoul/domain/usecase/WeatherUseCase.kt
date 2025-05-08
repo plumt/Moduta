@@ -1,4 +1,4 @@
-package com.yun.seoul.domain.usecase.weather
+package com.yun.seoul.domain.usecase
 
 import com.yun.seoul.domain.model.ApiResult
 import com.yun.seoul.domain.model.weather.NowWeather

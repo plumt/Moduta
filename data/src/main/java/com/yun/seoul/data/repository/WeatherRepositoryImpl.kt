@@ -1,7 +1,7 @@
 package com.yun.seoul.data.repository
 
 import com.yun.seoul.data.datasource.weather.WeatherDataSource
-import com.yun.seoul.data.mapper.weather.WeatherMapper
+import com.yun.seoul.data.mapper.WeatherMapper
 import com.yun.seoul.domain.model.ApiResult
 import com.yun.seoul.domain.model.weather.NowWeather
 import com.yun.seoul.domain.repository.WeatherRepository

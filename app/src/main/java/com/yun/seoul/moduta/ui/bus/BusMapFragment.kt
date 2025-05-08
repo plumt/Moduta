@@ -49,6 +49,8 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
             }
         })
 
+        viewModel.getBusRouteList()
+
     }
 
     override fun onResume() {

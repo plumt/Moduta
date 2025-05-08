@@ -1,10 +1,9 @@
 package com.yun.seoul.moduta.ui.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yun.seoul.domain.model.ApiResult
-import com.yun.seoul.domain.usecase.weather.WeatherUseCase
+import com.yun.seoul.domain.usecase.WeatherUseCase
 import com.yun.seoul.moduta.model.UiState
 import com.yun.seoul.moduta.model.weather.NowWeatherData
 import com.yun.seoul.moduta.model.weather.toNowWeatherData

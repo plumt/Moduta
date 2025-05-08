@@ -21,6 +21,8 @@ android {
         buildConfigField("String",  "WEATHER_URL", "${project.property("weather_url")}")
         buildConfigField("String",  "WEATHER_IMAGE_URL", "${project.property("weather_image_url")}")
         buildConfigField("String",  "KAKAO_MAP", "${project.property("kakao_map")}")
+        buildConfigField("String",  "OPEN_API_SERVICE_KEY", "${project.property("open_api_service_key")}")
+        buildConfigField("String",  "OPEN_BUS_BASE_URL", "${project.property("open_bus_base_url")}")
     }
 
     buildTypes {

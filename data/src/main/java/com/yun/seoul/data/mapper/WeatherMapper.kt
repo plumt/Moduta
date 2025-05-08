@@ -1,4 +1,4 @@
-package com.yun.seoul.data.mapper.weather
+package com.yun.seoul.data.mapper
 
 import com.yun.seoul.data.helper.WeatherHelper.Companion.weatherCompare
 import com.yun.seoul.data.helper.WeatherHelper.Companion.weatherDetail
