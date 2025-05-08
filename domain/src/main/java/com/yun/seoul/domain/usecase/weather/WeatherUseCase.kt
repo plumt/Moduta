@@ -1,0 +1,15 @@
+package com.yun.seoul.domain.usecase.weather
+
+import com.yun.seoul.domain.model.ApiResult
+import com.yun.seoul.domain.model.weather.NowWeather
+import com.yun.seoul.domain.repository.WeatherRepository
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+
+class WeatherUseCase @Inject constructor(
+    private val weatherRepository: WeatherRepository,
+) {
+
+    suspend fun getNowWeather(location: String): Flow<ApiResult<NowWeather>> =
+        weatherRepository.getNowWeather(location)
+}

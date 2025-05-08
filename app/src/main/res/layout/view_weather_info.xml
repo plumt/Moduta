@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout>
+
+    <data>
+
+        <import type="com.yun.seoul.domain.model.weather.WeatherState" />
+
+        <variable
+            name="title"
+            type="String" />
+
+        <variable
+            name="value"
+            type="String" />
+
+        <variable
+            name="level"
+            type="int" />
+
+    </data>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/woowahan"
+            android:includeFontPadding="false"
+            android:text="@{title}"
+            android:textColor="@color/color_757575"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/tv_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:fontFamily="@font/woowahan"
+            android:includeFontPadding="false"
+            android:text="@{value}"
+            android:textColor="@{level == WeatherState.GOOD.value ? @color/color_297EFF : level == WeatherState.NORMAL.value ? @color/color_2ED33E : level == WeatherState.BAD.value ? @color/color_FBA53B : level == WeatherState.WORST.value ? @color/color_FB3B3B : @color/black}"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</layout>

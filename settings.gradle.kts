@@ -16,8 +16,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven("https://jitpack.io")
     }
 }
 
 rootProject.name = "Moduta"
 include(":app")
+include(":domain")
+include(":data")

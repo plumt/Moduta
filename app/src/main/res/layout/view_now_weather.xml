@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout>
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="weather"
+            type="com.yun.seoul.moduta.model.weather.NowWeatherData" />
+
+        <variable
+            name="isLoading"
+            type="Boolean" />
+
+        <variable
+            name="onClick"
+            type="kotlin.jvm.functions.Function0&lt;kotlin.Unit>" />
+
+    </data>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/ll_weather"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true">
+        <!--        android:onClick="@{() -> onClick.invoke()}"-->
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="@{isLoading ? View.VISIBLE : View.INVISIBLE}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cv_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/white"
+            android:clickable="false"
+            android:visibility="@{isLoading ? View.INVISIBLE : View.VISIBLE}"
+            app:cardCornerRadius="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:strokeColor="@color/color_f4f4f4"
+            app:strokeWidth="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/color_F7FAFD"
+                    android:clickable="false"
+                    app:cardCornerRadius="10dp"
+                    app:strokeWidth="0dp">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:id="@+id/iv_weather"
+                            app:setWeatherImages="@{weather.url}"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:layout_marginStart="5dp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/tv_temperature"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginTop="10dp"
+                            android:fontFamily="@font/woowahan"
+                            android:includeFontPadding="false"
+                            android:text="@{`현재 온도 `+weather.temperature}"
+                            android:textColor="@color/black"
+                            android:textSize="24sp"
+                            app:layout_constraintStart_toEndOf="@id/iv_weather"
+                            app:layout_constraintTop_toTopOf="@id/iv_weather" />
+
+                        <TextView
+                            android:id="@+id/tv_weather_info"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:fontFamily="@font/woowahan"
+                            android:includeFontPadding="false"
+                            android:text="@{weather.state + ` • 체감 온도 ` + weather.feelTemperature}"
+                            android:textColor="@color/color_757575"
+                            android:textSize="15sp"
+                            app:layout_constraintStart_toStartOf="@id/tv_temperature"
+                            app:layout_constraintTop_toBottomOf="@id/tv_temperature" />
+
+                        <ImageView
+                            android:id="@+id/iv_arrow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="10dp"
+                            android:src="@drawable/baseline_arrow_forward_ios_24"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <View
+                    android:id="@+id/v_line"
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:layout_marginHorizontal="30dp"
+                    android:layout_marginVertical="20dp"
+                    android:background="@color/color_f4f4f4" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginBottom="20dp"
+                    android:orientation="horizontal"
+                    android:weightSum="4">
+
+                    <include
+                        layout="@layout/view_weather_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:level="@{weather.dust}"
+                        app:title="@{`미세먼지`}"
+                        app:value="@{weather.dustToString()}" />
+
+                    <include
+                        layout="@layout/view_weather_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:level="@{weather.UDust}"
+                        app:title="@{`초미세먼지`}"
+                        app:value="@{weather.uDustToString()}" />
+
+                    <include
+                        layout="@layout/view_weather_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:level="@{weather.uv}"
+                        app:title="@{`자외선`}"
+                        app:value="@{weather.uvToString()}" />
+
+                    <include
+                        layout="@layout/view_weather_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:level="@{0}"
+                        app:title="@{`습도`}"
+                        app:value="@{weather.humidity}" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

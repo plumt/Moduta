@@ -1,0 +1,24 @@
+plugins {
+    id("java-library")
+    alias(libs.plugins.jetbrains.kotlin.jvm)
+    id("kotlin-kapt")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+
+    // 크롤링
+    implementation("org.jsoup:jsoup:1.11.3")
+
+    // hilt
+    implementation("com.google.dagger:hilt-core:2.49")
+    kapt("com.google.dagger:hilt-compiler:2.49")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+
+    implementation(project(":domain"))
+}
