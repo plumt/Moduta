@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="itemBusSearchBusInfo"
+            type="com.yun.seoul.domain.model.bus.BusRouteDetail" />
+
+        <variable
+            name="busSearchBusInfoListener"
+            type="com.yun.seoul.moduta.base.BaseRecyclerViewAdapter.OnItemClickListener" />
+    </data>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:clickable="true"
+        android:onClick="@{(v) -> busSearchBusInfoListener.onItemClick(itemBusSearchBusInfo, v)}"
+        android:paddingHorizontal="10dp">
+
+        <TextView
+            android:id="@+id/tv_bus_route_abrv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:text="@{itemBusSearchBusInfo.busRouteAbrv}"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_stStationNm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="@{itemBusSearchBusInfo.stStationNm}"
+            android:textAlignment="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_bus_route_abrv" />
+
+        <ImageView
+            android:id="@+id/iv_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/outline_arrow_range_24"
+            app:layout_constraintBottom_toBottomOf="@id/tv_stStationNm"
+            app:layout_constraintStart_toEndOf="@id/tv_stStationNm"
+            app:layout_constraintTop_toTopOf="@id/tv_stStationNm" />
+
+        <TextView
+            android:id="@+id/tv_edStationNm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:text="@{itemBusSearchBusInfo.edStationNm}"
+            app:layout_constraintBottom_toBottomOf="@id/tv_stStationNm"
+            app:layout_constraintStart_toEndOf="@id/iv_arrow"
+            app:layout_constraintTop_toTopOf="@id/tv_stStationNm" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

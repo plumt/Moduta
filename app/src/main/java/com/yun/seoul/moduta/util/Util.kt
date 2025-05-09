@@ -1,9 +1,16 @@
 package com.yun.seoul.moduta.util
 
+import android.content.res.Resources
 import android.os.Build
 import android.view.View
 import android.view.Window
 import android.view.WindowInsets
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 object Util {
 
@@ -27,5 +34,20 @@ object Util {
 //        }
 
     }
+
+    fun <T> Flow<T>.observeWithLifecycle(
+        lifecycleOwner: LifecycleOwner,
+        lifecycleState: Lifecycle.State = Lifecycle.State.STARTED,
+        action: suspend (T) -> Unit
+    ) {
+        lifecycleOwner.lifecycleScope.launch {
+            lifecycleOwner.repeatOnLifecycle(lifecycleState) {
+                collect { action(it) }
+            }
+        }
+    }
+
+    fun Float.fromDpToPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
+
 
 }

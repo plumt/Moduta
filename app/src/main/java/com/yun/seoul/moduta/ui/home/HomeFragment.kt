@@ -29,8 +29,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>(){
 
         viewModel.getNowWeather()
 
-        binding.icNowWeather.llWeather.setOnSingleClickListener(onSingleClickListener)
-        binding.btnBus.setOnSingleClickListener(onSingleClickListener)
+        binding.icNowWeather.llWeather.setOnSingleClickListener(listener = onSingleClickListener)
+        binding.btnBus.setOnSingleClickListener(listener =onSingleClickListener)
     }
 
     private val onSingleClickListener: (View) -> Unit = {
