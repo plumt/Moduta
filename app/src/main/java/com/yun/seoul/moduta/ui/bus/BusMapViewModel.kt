@@ -14,6 +14,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -62,14 +64,9 @@ class BusMapViewModel @Inject constructor(
     // 실시간 위치, 캐싱 1초
     fun getBusPosByRtid(busRouteId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            _selectedBusData.value = null
             busUseCase.getBusPosByRtid(busRouteId).collect { result ->
                 when (result) {
-                    is BusResult.Success -> {
-                        _realtimeBusList.value = UiState.success(result.busInfo)
-                        _selectedBusData.value = busRouteId
-                    }
-
+                    is BusResult.Success -> _realtimeBusList.value = UiState.success(result.busInfo)
                     is BusResult.Loading -> _realtimeBusList.value = UiState.loading()
                     is BusResult.Error -> _realtimeBusList.value = UiState.error(result.message)
                     is BusResult.Empty -> _realtimeBusList.value = UiState.loading()
@@ -78,17 +75,40 @@ class BusMapViewModel @Inject constructor(
         }
     }
 
-    // 버스 정류장 목록
-    fun getStationByRoute(busRouteId: String) {
+    fun loadBusAndStationData(busRouteId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            busUseCase.getStationByRoute(busRouteId).collect { result ->
-                when(result){
-                    is ApiResult.Success -> _busStationList.value = UiState.success(result.data)
-                    is ApiResult.Loading -> _busStationList.value = UiState.loading()
-                    is ApiResult.Empty -> _busStationList.value = UiState.empty()
-                    is ApiResult.Error -> _busStationList.value = UiState.error(result.message)
+            _selectedBusData.value = null
+            busUseCase.getBusPosByRtid(busRouteId)
+                .combine(busUseCase.getStationByRoute(busRouteId)) { busResult, stationResult ->
+                    Pair(busResult, stationResult)
+                }.collect { (busResult, stationResult) ->
+                    when {
+                        // 성공 케이스
+                        busResult is BusResult.Success && stationResult is ApiResult.Success -> {
+                            _realtimeBusList.value = UiState.success(busResult.busInfo)
+                            _busStationList.value = UiState.success(stationResult.data)
+                            _selectedBusData.value = busRouteId
+                        }
+
+                        // 에러 케이스 처리
+                        busResult is BusResult.Error -> {
+                            _realtimeBusList.value = UiState.error(busResult.message)
+                        }
+
+                        stationResult is ApiResult.Error -> {
+                            _busStationList.value = UiState.error(stationResult.message)
+                        }
+
+                        // 빈 결과 처리
+                        busResult is BusResult.Empty -> {
+                            _realtimeBusList.value = UiState.empty()
+                        }
+
+                        stationResult is ApiResult.Empty -> {
+                            _busStationList.value = UiState.empty()
+                        }
+                    }
                 }
-            }
         }
     }
 }
