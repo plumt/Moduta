@@ -13,6 +13,8 @@ import com.yun.seoul.moduta.base.BaseFullScreenDialog
 import com.yun.seoul.moduta.base.BaseRecyclerViewAdapter
 import com.yun.seoul.moduta.base.BindingAdapters.replace
 import com.yun.seoul.moduta.databinding.DialogSearchBusBinding
+import com.yun.seoul.moduta.util.ApiUtil.apiResultEmpty
+import com.yun.seoul.moduta.util.ApiUtil.apiResultError
 import com.yun.seoul.moduta.util.dialogResize
 import com.yun.seoul.moduta.util.setOnSingleClickListener
 
@@ -31,6 +33,14 @@ class BusSearchDialog<T : Any, B : ViewDataBinding>(
 
     private lateinit var binding: DialogSearchBusBinding
     private var keyword: String = ""
+
+    fun onEmpty(){
+        apiResultEmpty(binding.root)
+    }
+
+    fun onError(error: String) {
+        apiResultError(error, binding.root)
+    }
 
     fun routeSearchDataUpdate(searchInfoList: List<T>) {
         if (this::binding.isInitialized) {

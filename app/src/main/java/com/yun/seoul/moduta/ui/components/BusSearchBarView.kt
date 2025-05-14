@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.ViewDataBinding
+import com.google.android.material.snackbar.Snackbar
 import com.yun.seoul.moduta.R
 import com.yun.seoul.moduta.BR
 import com.yun.seoul.moduta.databinding.ViewSearchBarBinding
@@ -94,5 +95,13 @@ class BusSearchBarView<T : Any> @JvmOverloads constructor(
 
     fun updateData(searchInfoList: List<T>) {
         routeSearchDialog.routeSearchDataUpdate(searchInfoList)
+    }
+
+    fun emptyData(){
+        routeSearchDialog.onEmpty()
+    }
+
+    fun errorData(error: String){
+        routeSearchDialog.onError(error)
     }
 }

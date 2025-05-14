@@ -31,7 +31,7 @@
         <com.yun.seoul.moduta.ui.components.CountDownCircleView
             android:id="@+id/count_down"
             android:layout_width="wrap_content"
-            android:visibility="@{busMap.realtimeBusList.empty ? View.INVISIBLE : View.VISIBLE}"
+            android:visibility="@{busMap.realtimeBusList.data != null ? View.VISIBLE : View.INVISIBLE}"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             app:layout_constraintBottom_toBottomOf="parent"

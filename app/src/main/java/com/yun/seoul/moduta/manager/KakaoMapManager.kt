@@ -1,6 +1,5 @@
 package com.yun.seoul.moduta.manager
 
-import android.R
 import android.graphics.Color
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.LatLng
@@ -17,6 +16,9 @@ import com.kakao.vectormap.mapwidget.component.GuiText
 import com.kakao.vectormap.mapwidget.component.Orientation
 import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.moduta.constant.MapConstants
+import com.yun.seoul.moduta.constant.MapConstants.infoWindowOffset.BODY_OFFSET_Y
+import com.yun.seoul.moduta.constant.MapConstants.infoWindowOffset.BUS_TAIL_OFFSET_Y
+import com.yun.seoul.moduta.constant.MapConstants.infoWindowOffset.STATION_TAIL_OFFSET_Y
 import com.yun.seoul.moduta.model.map.KakaoMapLabel
 import com.yun.seoul.moduta.util.Util.fromDpToPx
 
@@ -36,7 +38,7 @@ class KakaoMapManager(private val kakaoMap: KakaoMap) {
             val text = LabelTextBuilder().setTexts(it.title)
 //            val text =
 //                LabelTextBuilder().setTexts(if (it.type == MapConstants.LabelType.Station) it.title else "")
-            val tag = if(it.type == MapConstants.LabelType.Bus) "bus" else "station"
+            val tag = it.type//if (it.type == MapConstants.LabelType.Bus) "bus" else "station"
             LabelOptions.from(LatLng.from(latLng)).setStyles(styles).setTag(tag).setTexts(text)
         }
         val layer = kakaoMap.labelManager?.lodLayer
@@ -47,10 +49,10 @@ class KakaoMapManager(private val kakaoMap: KakaoMap) {
 
     fun removeLabel(label: Array<LodLabel>?) {
         label?.map { kakaoMap.labelManager?.lodLayer?.remove(it) }
-////        labelLayer[0].remove
-////        labelLayer.map { kakaoMap.labelManager?.remove(it) }
-//        labelLayer.map { it?.removeAll() }
-//        LabelLayer()
+    }
+
+    fun removeAllLabel() {
+        kakaoMap.labelManager?.removeAllLodLabelLayer()
     }
 
     fun bounces(data: List<BusInfo>) {
@@ -65,27 +67,55 @@ class KakaoMapManager(private val kakaoMap: KakaoMap) {
         kakaoMap.mapWidgetManager!!.infoWindowLayer.removeAll()
     }
 
-    fun addInfoWindow(text: String, position: LatLng, windowBody: Int, windowTail: Int, type: MapConstants.LabelType) {
+    fun addInfoWindow(
+        text: String,
+        position: LatLng,
+        windowBody: Int,
+        windowTail: Int,
+        type: MapConstants.LabelType,
+    ) {
         removeInfoWindow()
-        val body = GuiLayout(Orientation.Horizontal)
-        body.setPadding(20, 20, 20, 18)
+        val body = createInfoWindowBody(text, windowBody)
+        val option = createInfoWindowOptions(position, body, windowTail, type)
+        kakaoMap.mapWidgetManager?.infoWindowLayer?.addInfoWindow(option)
+    }
 
+    private fun createInfoWindowBody(text: String, windowBody: Int): GuiLayout {
 
-        val bgImage = GuiImage(windowBody, true)
-        bgImage.setFixedArea(7, 7, 7, 7) // 말풍선 이미지 각 모서리의 둥근 부분만큼(7px)은 늘어나지 않도록 고정.
-        body.setBackground(bgImage)
+        val bgImage = GuiImage(windowBody, true).apply {
+            setFixedArea(7, 7, 7, 7)
+        }
 
-        val text = GuiText(text)
-        text.setTextSize(30)
-        body.addView(text)
+        val textView = GuiText(text).apply {
+            setTextSize(30)
+        }
 
-        val option = InfoWindowOptions.from(position)
-        option.setBody(body)
-        option.setTail(GuiImage(windowTail, false))
-        option.setBodyOffset(0f, -13f) // Body 와 겹치게 -4px 만큼 올려줌.
-        option.setTailOffset(0f,if(type == MapConstants.LabelType.Bus) -95f else -50f)
-//        val options = )
+        val body = GuiLayout(Orientation.Horizontal).apply {
+            setPadding(20, 20, 20, 18)
+            setBackground(bgImage)
+            addView(textView)
+        }
+        return body
+    }
 
-        kakaoMap.mapWidgetManager!!.infoWindowLayer.addInfoWindow(option)
+    private fun createInfoWindowOptions(
+        position: LatLng,
+        body: GuiLayout,
+        windowTail: Int,
+        type: MapConstants.LabelType,
+    ): InfoWindowOptions {
+
+        val tailOffsetY = when (type) {
+            MapConstants.LabelType.Bus -> BUS_TAIL_OFFSET_Y
+            MapConstants.LabelType.Station -> STATION_TAIL_OFFSET_Y
+        }
+
+        val option = InfoWindowOptions.from(position).apply {
+            setBody(body)
+            setTail(GuiImage(windowTail, false))
+            setBodyOffset(0f, BODY_OFFSET_Y)
+            setTailOffset(0f, tailOffsetY)
+        }
+        return option
     }
 }

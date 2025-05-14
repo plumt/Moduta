@@ -1,8 +1,8 @@
 package com.yun.seoul.moduta.ui.bus
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kakao.vectormap.label.LodLabel
 import com.yun.seoul.domain.model.ApiResult
 import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.domain.model.bus.BusResult
@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,6 +38,10 @@ class BusMapViewModel @Inject constructor(
     // 선택한 버스 데이터
     private val _selectedBusData = MutableStateFlow<String?>(null)
     val selectedBusData = _selectedBusData.asStateFlow()
+
+    var busLabelLayer = emptyArray<LodLabel>()
+    var stationLabelLayer = emptyArray<LodLabel>()
+    var selectWindowInfoLodLabel: LodLabel? = null
 
 
     init {
@@ -77,7 +80,6 @@ class BusMapViewModel @Inject constructor(
 
     fun loadBusAndStationData(busRouteId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            _selectedBusData.value = null
             busUseCase.getBusPosByRtid(busRouteId)
                 .combine(busUseCase.getStationByRoute(busRouteId)) { busResult, stationResult ->
                     Pair(busResult, stationResult)
@@ -91,24 +93,26 @@ class BusMapViewModel @Inject constructor(
                         }
 
                         // 에러 케이스 처리
-                        busResult is BusResult.Error -> {
-                            _realtimeBusList.value = UiState.error(busResult.message)
-                        }
+                        busResult is BusResult.Error -> _realtimeBusList.value =
+                            UiState.error(busResult.message)
 
-                        stationResult is ApiResult.Error -> {
-                            _busStationList.value = UiState.error(stationResult.message)
-                        }
+                        stationResult is ApiResult.Error -> _busStationList.value =
+                            UiState.error(stationResult.message)
 
                         // 빈 결과 처리
-                        busResult is BusResult.Empty -> {
-                            _realtimeBusList.value = UiState.empty()
-                        }
-
-                        stationResult is ApiResult.Empty -> {
-                            _busStationList.value = UiState.empty()
-                        }
+                        busResult is BusResult.Empty -> _realtimeBusList.value = UiState.empty()
+                        stationResult is ApiResult.Empty -> _busStationList.value = UiState.empty()
                     }
                 }
         }
+    }
+
+    fun clearData() {
+        _realtimeBusList.value = UiState()
+        _busStationList.value = UiState()
+        _selectedBusData.value = null
+        busLabelLayer = emptyArray()
+        stationLabelLayer = emptyArray()
+        selectWindowInfoLodLabel = null
     }
 }

@@ -18,4 +18,7 @@ data class BusRouteStationDetail(
     val sectSpd: String,            // 구간 속도
     val arsId: String,              // 정류소 고유 번호
     val transYn: String             // 회차지 여부
-)
+) {
+    val latitudeDouble: Double get() = gpsY.toDouble()
+    val longitudeDouble: Double get() = gpsX.toDouble()
+}

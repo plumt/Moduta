@@ -10,17 +10,24 @@ import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.PoiScale
-import com.kakao.vectormap.label.Label
 import com.kakao.vectormap.label.LodLabel
+import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.domain.model.bus.BusRouteDetail
-import com.yun.seoul.moduta.model.map.KakaoMapLabel
 import com.yun.seoul.moduta.BR
 import com.yun.seoul.moduta.R
 import com.yun.seoul.moduta.base.BaseFragment
 import com.yun.seoul.moduta.constant.MapConstants
+import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.BUS_RES_ID
+import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.STATION_RES_ID
+import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.WINDOW_BODY_RES_ID
+import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.WINDOW_TAIL_RES_ID
 import com.yun.seoul.moduta.databinding.FragmentBusMapBinding
 import com.yun.seoul.moduta.manager.KakaoMapManager
+import com.yun.seoul.moduta.model.handleState
+import com.yun.seoul.moduta.model.map.KakaoMapLabel
 import com.yun.seoul.moduta.ui.components.BusSearchBarView
+import com.yun.seoul.moduta.util.ApiUtil.apiResultEmpty
+import com.yun.seoul.moduta.util.ApiUtil.apiResultError
 import com.yun.seoul.moduta.util.Util.observeWithLifecycle
 import com.yun.seoul.moduta.util.setOnSingleClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,10 +43,6 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
     override fun onBackEvent() {}
 
     private lateinit var kakaoMapManager: KakaoMapManager
-    private var busLabelLayer = emptyArray<LodLabel>()
-    private var stationLabelLayer = emptyArray<LodLabel>()
-
-    private var selectWindowInfoLodLabel: LodLabel? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -47,67 +50,115 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         setupMapView()
         setupCountDown()
         setupSearchBar()
+        setupObserve()
+    }
 
-
+    private fun setupObserve() {
 
         viewModel.searchBusList.observeWithLifecycle(viewLifecycleOwner) { result ->
-            result.data.takeUnless { it.isNullOrEmpty() }?.let { binding.searchBar.updateData(it) }
+            result.handleState(
+                onEmpty = { binding.searchBar.emptyData() },
+                onError = { binding.searchBar.errorData(it) },
+                onSuccess = {
+                    it.takeUnless { it.isNullOrEmpty() }?.let { binding.searchBar.updateData(it) }
+                }
+            )
         }
 
         viewModel.realtimeBusList.observeWithLifecycle(viewLifecycleOwner) {
-            it.data.takeUnless { it.isNullOrEmpty() }?.let {
-                binding.countDown.startCounter()
-                kakaoMapManager.removeLabel(busLabelLayer)
-                kakaoMapManager.addLabel(it.map {
-                    KakaoMapLabel(
-                        it.latitude.toDouble(),
-                        it.longitude.toDouble(),
-                        R.drawable.bus_map_icon_2,
-                        MapConstants.LabelType.Bus,
-                        it.plainNo ?: "번호 미확인"
+            it.handleState(
+                onEmpty = { apiResultEmpty(binding.root) },
+                onError = { apiResultError(it, binding.root) },
+                onSuccess = { busInfoList ->
+                    updateMapLabels(
+                        data = busInfoList,
+                        labelType = MapConstants.LabelType.Bus,
+                        mapLabels = viewModel.busLabelLayer,
+                        convertMapLabel = {
+                            KakaoMapLabel(
+                                it.latitudeDouble,
+                                it.longitudeDouble,
+                                BUS_RES_ID,
+                                MapConstants.LabelType.Bus,
+                                it.displayNumber
+                            )
+                        }
                     )
-                }).run {
-                    if (busLabelLayer.isEmpty()) kakaoMapManager.bounces(it)
-                    busLabelLayer = this ?: emptyArray()
-                }
-                selectWindowInfoLodLabel?.let { label ->
-                    busLabelLayer.find { it.texts.first() == label.texts.first() }?.let {
-                        kakaoMapManager.addInfoWindow(
-                            it.texts.first(),
-                            it.position,
-                            R.drawable.window_body,
-                            R.drawable.window_tail,
-                            MapConstants.LabelType.Bus
-                        )
-                    }
                 }
 
-            }
+            )
         }
 
         viewModel.busStationList.observeWithLifecycle(viewLifecycleOwner) {
-            it.data.takeUnless { it.isNullOrEmpty() }?.let { it ->
-                kakaoMapManager.removeLabel(stationLabelLayer)
-                stationLabelLayer = kakaoMapManager.addLabel(it.map {
-                    KakaoMapLabel(
-                        it.gpsY.toDouble(),
-                        it.gpsX.toDouble(),
-                        R.drawable.station_map_icon,
-                        MapConstants.LabelType.Station,
-                        it.stationNm
+            it.handleState(
+                onEmpty = { apiResultEmpty(binding.root) },
+                onError = { apiResultError(it, binding.root) },
+                onSuccess = { busRouteDetailInfo ->
+                    updateMapLabels(
+                        data = busRouteDetailInfo,
+                        labelType = MapConstants.LabelType.Station,
+                        mapLabels = viewModel.stationLabelLayer,
+                        convertMapLabel = {
+                            KakaoMapLabel(
+                                it.latitudeDouble,
+                                it.longitudeDouble,
+                                STATION_RES_ID,
+                                MapConstants.LabelType.Station,
+                                it.stationNm
+                            )
+                        }
                     )
-                }) ?: emptyArray()
-                selectWindowInfoLodLabel?.let { label ->
-                    stationLabelLayer.find { it.texts.first() == label.texts.first() }?.let {
-                        kakaoMapManager.addInfoWindow(
-                            it.texts.first(),
-                            it.position,
-                            R.drawable.window_body,
-                            R.drawable.window_tail,
-                            MapConstants.LabelType.Station
-                        )
-                    }
                 }
+            )
+        }
+    }
+
+    private fun <T> updateMapLabels(
+        data: List<T>,
+        labelType: MapConstants.LabelType,
+        mapLabels: Array<LodLabel>,
+        convertMapLabel: (T) -> KakaoMapLabel,
+    ) {
+        // 버스 데이터인 경우 카운트 다운 시작
+        if (labelType == MapConstants.LabelType.Bus) {
+            binding.countDown.startCounter()
+        }
+
+        // 기존 라벨 제거
+        kakaoMapManager.removeLabel(mapLabels)
+
+        // 새 라벨 추가
+        val newLabels = kakaoMapManager.addLabel(data.map(convertMapLabel)) ?: emptyArray()
+
+        // 첫 호출시 버스가 모두 보이게 줌 조절
+        if (mapLabels.isEmpty() && labelType == MapConstants.LabelType.Bus) {
+            kakaoMapManager.bounces(data as List<BusInfo>)
+        }
+
+        when (labelType) {
+            MapConstants.LabelType.Bus -> viewModel.busLabelLayer = newLabels
+            MapConstants.LabelType.Station -> viewModel.stationLabelLayer = newLabels
+        }
+
+        restoreSelectedInfoWindow(labelType)
+    }
+
+    private fun restoreSelectedInfoWindow(labelType: MapConstants.LabelType) {
+
+        viewModel.selectWindowInfoLodLabel?.let { label ->
+            val targetLabels = when (labelType) {
+                MapConstants.LabelType.Bus -> viewModel.busLabelLayer
+                MapConstants.LabelType.Station -> viewModel.stationLabelLayer
+            }
+
+            targetLabels.find { it.texts.first() == label.texts.first() }?.let {
+                kakaoMapManager.addInfoWindow(
+                    it.texts.first(),
+                    it.position,
+                    WINDOW_BODY_RES_ID,
+                    WINDOW_TAIL_RES_ID,
+                    labelType
+                )
             }
         }
     }
@@ -128,10 +179,11 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         (binding.searchBar as BusSearchBarView<BusRouteDetail>).apply {
             setOnSearchListener { viewModel.getBusRouteList(it) }
             setOnSelectedListener { item ->
-                busLabelLayer = emptyArray()
-                stationLabelLayer = emptyArray()
+                binding.countDown.stopCounter()
+                kakaoMapManager.removeAllLabel()
+                kakaoMapManager.removeInfoWindow()
+                viewModel.clearData()
                 viewModel.loadBusAndStationData(item.busRouteId)
-                binding.countDown.startCounter()
             }
         }
     }
@@ -146,17 +198,17 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
             kakaoMapManager = KakaoMapManager(kakaoMap)
 
             kakaoMap.setOnLodLabelClickListener { map, lodLabelLayer, lodLabel ->
-                if (selectWindowInfoLodLabel == lodLabel) {
-                    selectWindowInfoLodLabel = null
+                if (viewModel.selectWindowInfoLodLabel == lodLabel) {
+                    viewModel.selectWindowInfoLodLabel = null
                     kakaoMapManager.removeInfoWindow()
                 } else {
-                    selectWindowInfoLodLabel = lodLabel
+                    viewModel.selectWindowInfoLodLabel = lodLabel
                     kakaoMapManager.addInfoWindow(
                         lodLabel.texts.first(),
                         lodLabel.position,
                         R.drawable.window_body,
                         R.drawable.window_tail,
-                        if (lodLabel.tag == "bus") MapConstants.LabelType.Bus else MapConstants.LabelType.Station
+                        lodLabel.tag as MapConstants.LabelType
                     )
                 }
                 true
