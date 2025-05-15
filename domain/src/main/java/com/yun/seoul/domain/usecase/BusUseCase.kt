@@ -1,7 +1,6 @@
 package com.yun.seoul.domain.usecase
 
-import com.yun.seoul.domain.model.ApiResult
-import com.yun.seoul.domain.model.bus.BusResult
+import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
 import com.yun.seoul.domain.repository.BusRepository
@@ -16,31 +15,31 @@ class BusUseCase @Inject constructor(
         busRouteId: String,
         startOrd: String,
         endOrd: String,
-    ): Flow<BusResult> {
+    ): Flow<List<BusInfo>> {
         return busRepository.getBusPosByRouteSt(busRouteId, startOrd, endOrd)
     }
 
-    suspend fun getBusPosByVehId(vehId: String): Flow<BusResult> {
+    suspend fun getBusPosByVehId(vehId: String): Flow<List<BusInfo>> {
         return busRepository.getBusPosByVehId(vehId)
     }
 
-    suspend fun getBusPosByRtid(busRouteId: String): Flow<BusResult> {
+    suspend fun getBusPosByRtid(busRouteId: String): Flow<List<BusInfo>> {
         return busRepository.getBusPosByRtid(busRouteId)
     }
 
-    suspend fun getRouteInfo(busRouteId: String): Flow<ApiResult<List<BusRouteDetail>>> {
+    suspend fun getRouteInfo(busRouteId: String): Flow<List<BusRouteDetail>> {
         return busRepository.getRouteInfo(busRouteId)
     }
 
-    suspend fun getStationByRoute(busRouteId: String): Flow<ApiResult<List<BusRouteStationDetail>>> {
+    suspend fun getStationByRoute(busRouteId: String): Flow<List<BusRouteStationDetail>> {
         return busRepository.getStationByRoute(busRouteId)
     }
 
-    suspend fun getBusRouteList(strSrch: String): Flow<ApiResult<List<BusRouteDetail>>> {
+    suspend fun getBusRouteList(strSrch: String): Flow<List<BusRouteDetail>> {
         return busRepository.getBusRouteList(strSrch)
     }
 
-    suspend fun getRoutePath(busRouteId: String): Flow<BusResult> {
+    suspend fun getRoutePath(busRouteId: String): Flow<List<BusInfo>> {
         return busRepository.getRoutePath(busRouteId)
     }
 }
