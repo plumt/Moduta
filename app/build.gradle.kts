@@ -94,6 +94,12 @@ dependencies {
     // 카카오맵
     implementation("com.kakao.maps.open:android:2.11.9")
 
+    // Google Play Services - 위치 정보
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    // Google Tasks API를 코루틴과 함께 사용하기 위한 의존성
+    implementation("com.google.android.gms:play-services-tasks:18.0.2")
+
+
     implementation(project(":domain"))
     implementation(project(":data"))
 }
