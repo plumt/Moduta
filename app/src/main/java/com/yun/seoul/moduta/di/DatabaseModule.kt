@@ -20,7 +20,7 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             ModutaDatabase::class.java,
-            "bus_database"
+            "moduta_database"
         ).build()
     }
 
