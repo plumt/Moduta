@@ -1,9 +1,11 @@
 package com.yun.seoul.data.repository
 
 import com.yun.seoul.data.datasource.bus.BusDataSource
+import com.yun.seoul.data.datasource.bus.BusLocalDataSource
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusInfo
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusInfoList
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusRouteDetail
+import com.yun.seoul.data.mapper.BusMapper.Companion.toBusRouteListEntity
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusRouteStationDetail
 import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.domain.model.bus.BusRouteDetail
@@ -17,6 +19,7 @@ import javax.inject.Inject
 
 class BusRepositoryImpl @Inject constructor(
     private val busDataSource: BusDataSource,
+    private val busLocalDataSource: BusLocalDataSource,
 ) : BusRepository {
 
     override suspend fun getBusPosByRouteSt(
@@ -87,14 +90,23 @@ class BusRepositoryImpl @Inject constructor(
 
     override suspend fun getBusRouteList(strSrch: String): Flow<List<BusRouteDetail>> =
         flow {
-            val response = busDataSource.getBusRouteList(strSrch)
-            if (response.isSuccessful) {
-                response.body()?.msgBody?.itemList?.let { result ->
-                    val busRouteDetail = result.toBusRouteDetail()
-                    emit(busRouteDetail)
-                }
+
+            val localResult = busLocalDataSource.getBusRouteList(strSrch)
+            if (localResult.isNotEmpty()) {
+                // db에서 가져옴
+                val busRouteDetail = localResult.toBusRouteDetail()
+                emit(busRouteDetail)
             } else {
-                throw RuntimeException(response.message())
+                val response = busDataSource.getBusRouteList(strSrch)
+                if (response.isSuccessful) {
+                    response.body()?.msgBody?.itemList?.let { result ->
+                        busLocalDataSource.insertBusRouteList(result.toBusRouteListEntity())
+                        val busRouteDetail = result.toBusRouteDetail()
+                        emit(busRouteDetail)
+                    }
+                } else {
+                    throw RuntimeException(response.message())
+                }
             }
         }.flowOn(Dispatchers.IO)
 

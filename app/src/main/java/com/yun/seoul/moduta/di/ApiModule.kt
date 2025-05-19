@@ -4,6 +4,10 @@ import android.content.Context
 import com.google.gson.GsonBuilder
 import com.yun.seoul.data.datasource.bus.BusDataSource
 import com.yun.seoul.data.datasource.bus.BusDataSourceImpl
+import com.yun.seoul.data.datasource.bus.BusLocalDataSource
+import com.yun.seoul.data.datasource.bus.BusLocalDataSourceImpl
+import com.yun.seoul.data.local.dao.BusRouteListDao
+import com.yun.seoul.data.local.dao.StationByRouteDao
 import com.yun.seoul.data.remote.api.BusApiService
 import com.yun.seoul.data.repository.BusRepositoryImpl
 import com.yun.seoul.domain.repository.BusRepository
@@ -51,13 +55,28 @@ object ApiModule {
         client: OkHttpClient,
     ): BusDataSource {
         val retrofit = provideRetrofit(context, client, BuildConfig.OPEN_BUS_BASE_URL)
-        return BusDataSourceImpl(retrofit.create(BusApiService::class.java), BuildConfig.OPEN_API_SERVICE_KEY)
+        return BusDataSourceImpl(
+            retrofit.create(BusApiService::class.java),
+            BuildConfig.OPEN_API_SERVICE_KEY
+        )
     }
 
     @Provides
     @Singleton
-    fun provideBusRepository(busDataSource: BusDataSource): BusRepository {
-        return BusRepositoryImpl(busDataSource)
+    fun provideBusRepository(
+        busDataSource: BusDataSource,
+        busLocalDataSource: BusLocalDataSource,
+    ): BusRepository {
+        return BusRepositoryImpl(busDataSource, busLocalDataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBusLocalDataSource(
+        busRouteListDao: BusRouteListDao,
+        stationByRouteDao: StationByRouteDao,
+    ): BusLocalDataSource {
+        return BusLocalDataSourceImpl(busRouteListDao, stationByRouteDao)
     }
 
 }

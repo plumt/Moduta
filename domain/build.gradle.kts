@@ -1,6 +1,7 @@
 plugins {
     id("java-library")
     alias(libs.plugins.jetbrains.kotlin.jvm)
+//    id("com.google.devtools.ksp")
     id("kotlin-kapt")
 }
 
@@ -10,8 +11,8 @@ java {
 }
 
 dependencies {
-    implementation("com.google.dagger:hilt-core:2.49")
-    kapt("com.google.dagger:hilt-compiler:2.49")
+    implementation(libs.hilt.core)
+    kapt(libs.hilt.compiler)
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 }

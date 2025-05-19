@@ -1,8 +1,10 @@
 package com.yun.seoul.data.mapper
 
+import com.yun.seoul.data.local.entity.busRouteList.BusRouteListEntity
 import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
+import java.time.LocalDateTime
 
 class BusMapper {
 
@@ -110,5 +112,47 @@ class BusMapper {
                     longitude = item.gpsX,
                 )
             }
+
+
+        // Entity -> Domain 변환 함수
+        @JvmName("busRouteListEntityToBusRouteDetail")
+        fun List<BusRouteListEntity>.toBusRouteDetail(): List<BusRouteDetail> =
+            map { entity ->
+                BusRouteDetail(
+                    busRouteAbrv = entity.busRouteAbrv,
+                    busRouteId = entity.busRouteId,
+                    length = entity.length,
+                    routeType = entity.routeType,
+                    stStationNm = entity.stStationNm,
+                    edStationNm = entity.edStationNm,
+                    term = entity.term,
+                    lastBusYn = entity.lastBusYn,
+                    firstBusTm = entity.firstBusTm,
+                    lastBusTm = entity.lastBusTm,
+                    corpNm = entity.corpNm
+                )
+            }
+
+        // Domain -> Entity 변환 함수
+        @JvmName("busRouteListResponseToBusRouteListEntity")
+        fun List<com.yun.seoul.data.model.bus.busRouteList.ItemList>.toBusRouteListEntity(): List<BusRouteListEntity> =
+            map { item ->
+                BusRouteListEntity(
+                    busRouteId = item.busRouteId,
+                    busRouteAbrv = item.busRouteAbrv,
+                    length = item.length,
+                    routeType = item.routeType,
+                    stStationNm = item.stStationNm,
+                    edStationNm = item.edStationNm,
+                    term = item.term,
+                    lastBusYn = item.lastBusYn,
+                    firstBusTm = item.firstBusTm,
+                    lastBusTm = item.lastBusTm,
+                    corpNm = item.corpNm,
+                    lastUpdated = LocalDateTime.now()
+                )
+            }
+
+
     }
 }

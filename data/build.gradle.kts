@@ -2,6 +2,7 @@ plugins {
     id("java-library")
     alias(libs.plugins.jetbrains.kotlin.jvm)
     id("kotlin-kapt")
+    id("com.google.devtools.ksp")
 }
 
 java {
@@ -15,8 +16,8 @@ dependencies {
     implementation("org.jsoup:jsoup:1.11.3")
 
     // hilt
-    implementation("com.google.dagger:hilt-core:2.49")
-    kapt("com.google.dagger:hilt-compiler:2.49")
+    implementation(libs.hilt.core)
+    kapt(libs.hilt.compiler)
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
@@ -26,6 +27,12 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.retrofit2:converter-scalars:2.7.1")
     implementation("com.github.akarnokd:rxjava3-retrofit-adapter:3.0.0")
+
+    // Room
+    val room_version = "2.7.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
 
     implementation(project(":domain"))
 }
