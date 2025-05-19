@@ -4,11 +4,11 @@ import android.graphics.Color
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.camera.CameraUpdateFactory
+import com.kakao.vectormap.label.Label
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
 import com.kakao.vectormap.label.LabelTextBuilder
-import com.kakao.vectormap.label.LodLabel
 import com.kakao.vectormap.mapwidget.InfoWindowOptions
 import com.kakao.vectormap.mapwidget.component.GuiImage
 import com.kakao.vectormap.mapwidget.component.GuiLayout
@@ -16,16 +16,16 @@ import com.kakao.vectormap.mapwidget.component.GuiText
 import com.kakao.vectormap.mapwidget.component.Orientation
 import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.moduta.constant.MapConstants
-import com.yun.seoul.moduta.constant.MapConstants.infoWindowOffset.BODY_OFFSET_Y
-import com.yun.seoul.moduta.constant.MapConstants.infoWindowOffset.BUS_TAIL_OFFSET_Y
-import com.yun.seoul.moduta.constant.MapConstants.infoWindowOffset.STATION_TAIL_OFFSET_Y
+import com.yun.seoul.moduta.constant.MapConstants.InfoWindowOffset.BODY_OFFSET_Y
+import com.yun.seoul.moduta.constant.MapConstants.InfoWindowOffset.BUS_TAIL_OFFSET_Y
+import com.yun.seoul.moduta.constant.MapConstants.InfoWindowOffset.STATION_TAIL_OFFSET_Y
 import com.yun.seoul.moduta.model.map.KakaoMapLabel
 import com.yun.seoul.moduta.util.Util.fromDpToPx
 
 
 class KakaoMapManager(private val kakaoMap: KakaoMap) {
 
-    fun addLabel(kakaoMapLabel: List<KakaoMapLabel>): Array<LodLabel>? {
+    fun addLabel(kakaoMapLabel: List<KakaoMapLabel>): Array<Label>? {
         val options = kakaoMapLabel.map {
 
             val styles = LabelStyles.from(
@@ -41,18 +41,21 @@ class KakaoMapManager(private val kakaoMap: KakaoMap) {
             val tag = it.type//if (it.type == MapConstants.LabelType.Bus) "bus" else "station"
             LabelOptions.from(LatLng.from(latLng)).setStyles(styles).setTag(tag).setTexts(text)
         }
-        val layer = kakaoMap.labelManager?.lodLayer
-        val label = layer?.addLodLabels(options)
-
+        val layer = kakaoMap.labelManager?.layer
+        val label = layer?.addLabels(options)
         return label
     }
 
-    fun removeLabel(label: Array<LodLabel>?) {
-        label?.map { kakaoMap.labelManager?.lodLayer?.remove(it) }
+    fun updateLabel(label: Label, latLng: LatLng) {
+        label.moveTo(latLng)
+    }
+
+    fun removeLabel(label: Array<Label>?) {
+        label?.map { kakaoMap.labelManager?.layer?.remove(it) }
     }
 
     fun removeAllLabel() {
-        kakaoMap.labelManager?.removeAllLodLabelLayer()
+        kakaoMap.labelManager?.removeAllLabelLayer()
     }
 
     fun bounces(data: List<BusInfo>) {
@@ -65,6 +68,14 @@ class KakaoMapManager(private val kakaoMap: KakaoMap) {
 
     fun removeInfoWindow() {
         kakaoMap.mapWidgetManager!!.infoWindowLayer.removeAll()
+    }
+
+    fun startTracking(label: Label){
+        kakaoMap.trackingManager?.startTracking(label)
+    }
+
+    fun stopTracking(){
+        kakaoMap.trackingManager?.stopTracking()
     }
 
     fun addInfoWindow(

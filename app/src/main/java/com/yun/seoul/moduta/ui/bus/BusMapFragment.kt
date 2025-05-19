@@ -4,19 +4,22 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import com.kakao.vectormap.GestureType
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.PoiScale
-import com.kakao.vectormap.label.LodLabel
+import com.kakao.vectormap.label.Label
 import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.moduta.BR
 import com.yun.seoul.moduta.R
 import com.yun.seoul.moduta.base.BaseFragment
 import com.yun.seoul.moduta.constant.MapConstants
+import com.yun.seoul.moduta.constant.MapConstants.DefaultLocation.ZOOM_LEVEL
 import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.BUS_RES_ID
 import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.STATION_RES_ID
 import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.WINDOW_BODY_RES_ID
@@ -31,6 +34,7 @@ import com.yun.seoul.moduta.util.ApiUtil.apiResultError
 import com.yun.seoul.moduta.util.Util.observeWithLifecycle
 import com.yun.seoul.moduta.util.setOnSingleClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
 
 
 @AndroidEntryPoint
@@ -39,10 +43,19 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
     override fun getResourceId(): Int = R.layout.fragment_bus_map
     override fun setVariable(): Int = BR.busMap
     override fun isLoading(): LiveData<Boolean>? = null
-    override fun isOnBackEvent(): Boolean = true
+    override fun isOnBackEvent(): Boolean = false
     override fun onBackEvent() {}
 
     private lateinit var kakaoMapManager: KakaoMapManager
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        arguments?.let {
+            viewModel.currentLocation = LatLng.from(it.getDouble("latitude"),it.getDouble("longitude"))
+            Log.d("yslee","viewModel.currentLocation > ${viewModel.currentLocation}")
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -116,7 +129,7 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
     private fun <T> updateMapLabels(
         data: List<T>,
         labelType: MapConstants.LabelType,
-        mapLabels: Array<LodLabel>,
+        mapLabels: Array<Label>,
         convertMapLabel: (T) -> KakaoMapLabel,
     ) {
         // 버스 데이터인 경우 카운트 다운 시작
@@ -124,11 +137,50 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
             binding.countDown.startCounter()
         }
 
+        val newMapLabels = data.map(convertMapLabel)
+
+        val existingLabelMap = mapLabels.associateBy { it.texts.first() }
+        val newLabelMap = newMapLabels.associateBy { it.title }
+
+        val labelsToUpdate = mutableListOf<Pair<Label, KakaoMapLabel>>()
+        val labelsToAdd = mutableListOf<KakaoMapLabel>()
+        val labelsToRemove = mutableListOf<Label>()
+
+        // 업데이트할 라벨과 삭제할 라벨 찾기
+        existingLabelMap.forEach { (text, existingLabel) ->
+            val newLabel = newLabelMap[text]
+            if(newLabel != null) {
+                labelsToUpdate.add(existingLabel to newLabel)
+            } else {
+                labelsToRemove.add(existingLabel)
+            }
+        }
+
+        // 추가할 라벨 찾기
+        newLabelMap.forEach { (text, newLabel) ->
+            if (!existingLabelMap.containsKey(text)) {
+                // 새 데이터 중 기존에 없던 것 -> 추가
+                labelsToAdd.add(newLabel)
+            }
+        }
+
         // 기존 라벨 제거
-        kakaoMapManager.removeLabel(mapLabels)
+        labelsToRemove.forEach { kakaoMapManager.removeLabel(arrayOf(it)) }
+
+        // 기존 라벨 위치 업데이트
+        labelsToUpdate.forEach { (existingLabel, newLabel) ->
+            kakaoMapManager.updateLabel(existingLabel, LatLng.from(newLabel.latitude, newLabel.longitude))
+        }
 
         // 새 라벨 추가
-        val newLabels = kakaoMapManager.addLabel(data.map(convertMapLabel)) ?: emptyArray()
+        val addLabels = if(labelsToAdd.isNotEmpty()){
+            kakaoMapManager.addLabel(labelsToAdd) ?: emptyArray()
+        } else {
+            emptyArray()
+        }
+
+        // 기존 라벨과 새 라벨 결합
+        val updateLabels = labelsToUpdate.map { it.first }.toTypedArray() + addLabels
 
         // 첫 호출시 버스가 모두 보이게 줌 조절
         if (mapLabels.isEmpty() && labelType == MapConstants.LabelType.Bus) {
@@ -136,8 +188,8 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         }
 
         when (labelType) {
-            MapConstants.LabelType.Bus -> viewModel.busLabelLayer = newLabels
-            MapConstants.LabelType.Station -> viewModel.stationLabelLayer = newLabels
+            MapConstants.LabelType.Bus -> viewModel.busLabelLayer = updateLabels
+            MapConstants.LabelType.Station -> viewModel.stationLabelLayer = updateLabels
         }
 
         restoreSelectedInfoWindow(labelType)
@@ -145,7 +197,7 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
 
     private fun restoreSelectedInfoWindow(labelType: MapConstants.LabelType) {
 
-        viewModel.selectWindowInfoLodLabel?.let { label ->
+        viewModel.selectWindowInfoLabel?.let { label ->
             val targetLabels = when (labelType) {
                 MapConstants.LabelType.Bus -> viewModel.busLabelLayer
                 MapConstants.LabelType.Station -> viewModel.stationLabelLayer
@@ -159,6 +211,7 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
                     WINDOW_TAIL_RES_ID,
                     labelType
                 )
+                kakaoMapManager.startTracking(it)
             }
         }
     }
@@ -182,6 +235,7 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
                 binding.countDown.stopCounter()
                 kakaoMapManager.removeAllLabel()
                 kakaoMapManager.removeInfoWindow()
+                kakaoMapManager.stopTracking()
                 viewModel.clearData()
                 viewModel.loadBusAndStationData(item.busRouteId)
             }
@@ -194,29 +248,43 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
 
     private fun createKakaoMapReadyCallback() = object : KakaoMapReadyCallback() {
         override fun onMapReady(kakaoMap: KakaoMap) {
-            kakaoMap.poiScale = PoiScale.SMALL
+            kakaoMap.apply {
+                addFont(R.font.woowahan)
+                setGestureEnable(GestureType.Tilt,false)
+                poiScale = PoiScale.SMALL
+//                trackingManager?.startTracking(viewModel.busLabelLayer[0].layer.getLabel())
+
+            }
             kakaoMapManager = KakaoMapManager(kakaoMap)
 
-            kakaoMap.setOnLodLabelClickListener { map, lodLabelLayer, lodLabel ->
-                if (viewModel.selectWindowInfoLodLabel == lodLabel) {
-                    viewModel.selectWindowInfoLodLabel = null
+            kakaoMap.setOnCameraMoveStartListener { kakaoMap, gestureType ->
+                kakaoMapManager.stopTracking()
+            }
+
+            kakaoMap.setOnLabelClickListener { kakaoMap, _, label ->
+                if (viewModel.selectWindowInfoLabel == label) {
+                    viewModel.selectWindowInfoLabel = null
                     kakaoMapManager.removeInfoWindow()
+                    kakaoMapManager.stopTracking()
                 } else {
-                    viewModel.selectWindowInfoLodLabel = lodLabel
+                    viewModel.selectWindowInfoLabel = label
                     kakaoMapManager.addInfoWindow(
-                        lodLabel.texts.first(),
-                        lodLabel.position,
+                        label.texts.first(),
+                        label.position,
                         R.drawable.window_body,
                         R.drawable.window_tail,
-                        lodLabel.tag as MapConstants.LabelType
+                        label.tag as MapConstants.LabelType
                     )
+                    kakaoMapManager.startTracking(label)
                 }
                 true
             }
         }
 
-        override fun getPosition() = LatLng.from(37.617928, 127.075427)
-        override fun getZoomLevel() = 10
+
+
+        override fun getPosition() = viewModel.currentLocation
+        override fun getZoomLevel() = ZOOM_LEVEL
     }
 
     private fun createMapLifeCycleCallback() = object : MapLifeCycleCallback() {

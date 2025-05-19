@@ -1,5 +1,6 @@
 package com.yun.seoul.moduta.constant
 
+import android.location.Location
 import com.yun.seoul.moduta.R
 
 object MapConstants {
@@ -15,9 +16,21 @@ object MapConstants {
         val WINDOW_TAIL_RES_ID = R.drawable.window_tail
     }
 
-    object infoWindowOffset{
+    object InfoWindowOffset{
         const val BUS_TAIL_OFFSET_Y = -95f
         const val STATION_TAIL_OFFSET_Y = -50f
         const val BODY_OFFSET_Y = -13f
+    }
+
+    object DefaultLocation {
+        const val LATITUDE = 37.5666
+        const val LONGITUDE = 126.9782
+        const val ZOOM_LEVEL = 14
+
+        fun asLocation(): Location = Location("default").apply {
+            latitude = LATITUDE
+            longitude = LONGITUDE
+            time = System.currentTimeMillis()
+        }
     }
 }

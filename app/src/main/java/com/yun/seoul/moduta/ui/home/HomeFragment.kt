@@ -12,6 +12,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.yun.seoul.moduta.R
 import com.yun.seoul.moduta.BR
 import com.yun.seoul.moduta.base.BaseFragment
+import com.yun.seoul.moduta.constant.MapConstants.DefaultLocation.LATITUDE
+import com.yun.seoul.moduta.constant.MapConstants.DefaultLocation.LONGITUDE
 import com.yun.seoul.moduta.databinding.FragmentHomeBinding
 import com.yun.seoul.moduta.util.LocationPermissionUtil
 import com.yun.seoul.moduta.util.Util.setStatusBarColor
@@ -64,7 +66,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>() {
     }
 
     private fun checkLocationPermissionAndLoadWeather() {
-        if(viewModel.hasLocationPermission()) {
+        if (viewModel.hasLocationPermission()) {
             viewModel.getNowWeatherByCurrentLocation()
         } else {
             locationPermissionLauncher.launch(LocationPermissionUtil.LOCATION_PERMISSIONS)
@@ -78,7 +80,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>() {
             }
 
             binding.btnBus.id -> {
-                navigate(R.id.action_HomeFragment_to_busMapFragment)
+                navigate(R.id.action_HomeFragment_to_busMapFragment, Bundle().apply {
+                    putDouble("latitude", viewModel.currentLocation?.latitude ?: LATITUDE)
+                    putDouble("longitude", viewModel.currentLocation?.longitude ?: LONGITUDE)
+                })
             }
         }
     }

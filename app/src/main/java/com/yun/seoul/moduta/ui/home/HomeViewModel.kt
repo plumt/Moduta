@@ -1,6 +1,7 @@
 package com.yun.seoul.moduta.ui.home
 
 import android.app.Application
+import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,12 +31,14 @@ class HomeViewModel @Inject constructor(
     val nowWeather = _nowWeather.asStateFlow()
 
     private val locationManager = LocationManager(application)
+    var currentLocation: Location? = null
 
     // 위치 권한 체크
-    fun hasLocationPermission(): Boolean = LocationPermissionUtil.hasLocationPermissions(application)
+    fun hasLocationPermission(): Boolean =
+        LocationPermissionUtil.hasLocationPermissions(application)
 
     fun getNowWeatherByCurrentLocation() {
-        if(!hasLocationPermission()){
+        if (!hasLocationPermission()) {
             getNowWeather()
             return
         }
@@ -43,10 +46,17 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _nowWeather.value = UiState.loading()
             try {
-                val location = locationManager.getCurrentLocation()
-                val address = LocationAddressUtil.getAddressFromLocation(application,location.latitude, location.longitude)
-                getNowWeather(address)
-            } catch (e: Exception){
+                locationManager.getCurrentLocation().let {
+                    Log.d("yslee","getCurrentLocation > $it")
+                    currentLocation = it
+                    val address = LocationAddressUtil.getAddressFromLocation(
+                        application,
+                        it.latitude,
+                        it.longitude
+                    )
+                    getNowWeather(address)
+                }
+            } catch (e: Exception) {
                 getNowWeather()
             }
         }

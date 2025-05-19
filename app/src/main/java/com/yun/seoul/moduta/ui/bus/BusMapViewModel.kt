@@ -1,18 +1,22 @@
 package com.yun.seoul.moduta.ui.bus
 
+import android.app.Application
+import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kakao.vectormap.label.LodLabel
-import com.yun.seoul.domain.model.ApiResult
+import com.kakao.vectormap.LatLng
+import com.kakao.vectormap.label.Label
 import com.yun.seoul.domain.model.bus.BusInfo
-import com.yun.seoul.domain.model.bus.BusResult
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
 import com.yun.seoul.domain.usecase.BusUseCase
+import com.yun.seoul.moduta.constant.MapConstants.DefaultLocation.LATITUDE
+import com.yun.seoul.moduta.constant.MapConstants.DefaultLocation.LONGITUDE
+import com.yun.seoul.moduta.manager.LocationManager
 import com.yun.seoul.moduta.model.UiState
+import com.yun.seoul.moduta.util.LocationPermissionUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -24,6 +28,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BusMapViewModel @Inject constructor(
+    private val application: Application,
     private val busUseCase: BusUseCase,
 ) : ViewModel() {
 
@@ -43,14 +48,19 @@ class BusMapViewModel @Inject constructor(
     private val _selectedBusData = MutableStateFlow<String?>(null)
     val selectedBusData = _selectedBusData.asStateFlow()
 
-    var busLabelLayer = emptyArray<LodLabel>()
-    var stationLabelLayer = emptyArray<LodLabel>()
-    var selectWindowInfoLodLabel: LodLabel? = null
+    var busLabelLayer = emptyArray<Label>()
+    var stationLabelLayer = emptyArray<Label>()
+    var selectWindowInfoLabel: Label? = null
+
+    var currentLocation = LatLng.from(LATITUDE, LONGITUDE)
 
 
-    init {
+    private val locationManager = LocationManager(application)
 
-    }
+    // 위치 권한 체크
+    fun hasLocationPermission(): Boolean = LocationPermissionUtil.hasLocationPermissions(application)
+
+    suspend fun getCurrentLocation() = locationManager.getCurrentLocation()
 
     // 노선번호에 해당하는 노선 목록 조회
     // ex) 146 검색 > 146 번호가 들어가는 버스 목록 조회
@@ -117,6 +127,6 @@ class BusMapViewModel @Inject constructor(
         _selectedBusData.value = null
         busLabelLayer = emptyArray()
         stationLabelLayer = emptyArray()
-        selectWindowInfoLodLabel = null
+        selectWindowInfoLabel = null
     }
 }
