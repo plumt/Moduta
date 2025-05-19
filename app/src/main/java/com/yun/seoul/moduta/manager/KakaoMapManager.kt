@@ -15,23 +15,24 @@ import com.kakao.vectormap.mapwidget.component.GuiLayout
 import com.kakao.vectormap.mapwidget.component.GuiText
 import com.kakao.vectormap.mapwidget.component.Orientation
 import com.yun.seoul.domain.model.bus.BusInfo
+import com.yun.seoul.domain.model.map.MapLabel
+import com.yun.seoul.domain.constant.MapConstants.LabelType
 import com.yun.seoul.moduta.constant.MapConstants
 import com.yun.seoul.moduta.constant.MapConstants.InfoWindowOffset.BODY_OFFSET_Y
 import com.yun.seoul.moduta.constant.MapConstants.InfoWindowOffset.BUS_TAIL_OFFSET_Y
 import com.yun.seoul.moduta.constant.MapConstants.InfoWindowOffset.STATION_TAIL_OFFSET_Y
-import com.yun.seoul.moduta.model.map.KakaoMapLabel
 import com.yun.seoul.moduta.util.Util.fromDpToPx
 
 
 class KakaoMapManager(private val kakaoMap: KakaoMap) {
 
-    fun addLabel(kakaoMapLabel: List<KakaoMapLabel>): Array<Label>? {
+    fun addLabel(kakaoMapLabel: List<MapLabel>): Array<Label>? {
         val options = kakaoMapLabel.map {
 
             val styles = LabelStyles.from(
-                if (it.type == MapConstants.LabelType.Bus) "BusStyle" else "StationStyle",
+                if (it.type == LabelType.Bus) "BusStyle" else "StationStyle",
                 LabelStyle.from(it.iconResId)
-                    .setZoomLevel(if (it.type == MapConstants.LabelType.Bus) 10 else 16),
+                    .setZoomLevel(if (it.type == LabelType.Bus) 10 else 16),
                 LabelStyle.from(it.iconResId).setTextStyles(0, Color.TRANSPARENT).setZoomLevel(18)
             )
             val latLng = LatLng.from(it.latitude, it.longitude)
@@ -83,7 +84,7 @@ class KakaoMapManager(private val kakaoMap: KakaoMap) {
         position: LatLng,
         windowBody: Int,
         windowTail: Int,
-        type: MapConstants.LabelType,
+        type: LabelType,
     ) {
         removeInfoWindow()
         val body = createInfoWindowBody(text, windowBody)
@@ -113,12 +114,12 @@ class KakaoMapManager(private val kakaoMap: KakaoMap) {
         position: LatLng,
         body: GuiLayout,
         windowTail: Int,
-        type: MapConstants.LabelType,
+        type: LabelType,
     ): InfoWindowOptions {
 
         val tailOffsetY = when (type) {
-            MapConstants.LabelType.Bus -> BUS_TAIL_OFFSET_Y
-            MapConstants.LabelType.Station -> STATION_TAIL_OFFSET_Y
+            LabelType.Bus -> BUS_TAIL_OFFSET_Y
+            LabelType.Station -> STATION_TAIL_OFFSET_Y
         }
 
         val option = InfoWindowOptions.from(position).apply {

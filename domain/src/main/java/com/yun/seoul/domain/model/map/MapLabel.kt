@@ -1,8 +1,8 @@
-package com.yun.seoul.moduta.model.map
+package com.yun.seoul.domain.model.map
 
-import com.yun.seoul.moduta.constant.MapConstants
+import com.yun.seoul.domain.constant.MapConstants
 
-data class KakaoMapLabel(
+data class MapLabel(
     val latitude: Double,
     val longitude: Double,
     val iconResId: Int,

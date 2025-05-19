@@ -5,10 +5,6 @@ import com.yun.seoul.moduta.R
 
 object MapConstants {
 
-    enum class LabelType {
-        Bus, Station
-    }
-
     object LabelImageResId {
         val BUS_RES_ID = R.drawable.bus_map_icon_2
         val STATION_RES_ID = R.drawable.station_map_icon

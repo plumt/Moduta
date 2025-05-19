@@ -5,11 +5,10 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yun.seoul.domain.model.weather.NowWeather
 import com.yun.seoul.domain.usecase.WeatherUseCase
 import com.yun.seoul.moduta.manager.LocationManager
 import com.yun.seoul.moduta.model.UiState
-import com.yun.seoul.moduta.model.weather.NowWeatherData
-import com.yun.seoul.moduta.model.weather.toNowWeatherData
 import com.yun.seoul.moduta.util.LocationAddressUtil
 import com.yun.seoul.moduta.util.LocationPermissionUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,7 +26,7 @@ class HomeViewModel @Inject constructor(
     private val weatherUseCase: WeatherUseCase,
 ) : ViewModel() {
 
-    private val _nowWeather = MutableStateFlow<UiState<NowWeatherData>>(UiState())
+    private val _nowWeather = MutableStateFlow<UiState<NowWeather>>(UiState())
     val nowWeather = _nowWeather.asStateFlow()
 
     private val locationManager = LocationManager(application)
@@ -69,7 +68,7 @@ class HomeViewModel @Inject constructor(
                 .onStart { _nowWeather.value = UiState.loading() }
                 .onEmpty { _nowWeather.value = UiState.empty() }
                 .catch { e -> _nowWeather.value = UiState.error(e.message ?: "getNowWeather") }
-                .collect { r -> _nowWeather.value = UiState.success(r.toNowWeatherData()) }
+                .collect { r -> _nowWeather.value = UiState.success(r) }
         }
     }
 }

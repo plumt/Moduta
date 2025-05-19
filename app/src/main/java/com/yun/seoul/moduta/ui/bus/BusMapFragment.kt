@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import com.kakao.vectormap.GestureType
 import com.kakao.vectormap.KakaoMap
@@ -18,7 +17,6 @@ import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.moduta.BR
 import com.yun.seoul.moduta.R
 import com.yun.seoul.moduta.base.BaseFragment
-import com.yun.seoul.moduta.constant.MapConstants
 import com.yun.seoul.moduta.constant.MapConstants.DefaultLocation.ZOOM_LEVEL
 import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.BUS_RES_ID
 import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.STATION_RES_ID
@@ -26,15 +24,15 @@ import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.WINDOW_BODY_RE
 import com.yun.seoul.moduta.constant.MapConstants.LabelImageResId.WINDOW_TAIL_RES_ID
 import com.yun.seoul.moduta.databinding.FragmentBusMapBinding
 import com.yun.seoul.moduta.manager.KakaoMapManager
+import com.yun.seoul.domain.constant.MapConstants.LabelType
+import com.yun.seoul.domain.model.map.MapLabel
 import com.yun.seoul.moduta.model.handleState
-import com.yun.seoul.moduta.model.map.KakaoMapLabel
-import com.yun.seoul.moduta.ui.components.BusSearchBarView
+import com.yun.seoul.moduta.ui.custom.BusSearchBarView
 import com.yun.seoul.moduta.util.ApiUtil.apiResultEmpty
 import com.yun.seoul.moduta.util.ApiUtil.apiResultError
 import com.yun.seoul.moduta.util.Util.observeWithLifecycle
 import com.yun.seoul.moduta.util.setOnSingleClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 
 
 @AndroidEntryPoint
@@ -85,14 +83,14 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
                 onSuccess = { busInfoList ->
                     updateMapLabels(
                         data = busInfoList,
-                        labelType = MapConstants.LabelType.Bus,
+                        labelType = LabelType.Bus,
                         mapLabels = viewModel.busLabelLayer,
                         convertMapLabel = {
-                            KakaoMapLabel(
+                            MapLabel(
                                 it.latitudeDouble,
                                 it.longitudeDouble,
                                 BUS_RES_ID,
-                                MapConstants.LabelType.Bus,
+                                LabelType.Bus,
                                 it.displayNumber
                             )
                         }
@@ -109,14 +107,14 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
                 onSuccess = { busRouteDetailInfo ->
                     updateMapLabels(
                         data = busRouteDetailInfo,
-                        labelType = MapConstants.LabelType.Station,
+                        labelType = LabelType.Station,
                         mapLabels = viewModel.stationLabelLayer,
                         convertMapLabel = {
-                            KakaoMapLabel(
+                            MapLabel(
                                 it.latitudeDouble,
                                 it.longitudeDouble,
                                 STATION_RES_ID,
-                                MapConstants.LabelType.Station,
+                                LabelType.Station,
                                 it.stationNm
                             )
                         }
@@ -128,12 +126,12 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
 
     private fun <T> updateMapLabels(
         data: List<T>,
-        labelType: MapConstants.LabelType,
+        labelType: LabelType,
         mapLabels: Array<Label>,
-        convertMapLabel: (T) -> KakaoMapLabel,
+        convertMapLabel: (T) -> MapLabel,
     ) {
         // 버스 데이터인 경우 카운트 다운 시작
-        if (labelType == MapConstants.LabelType.Bus) {
+        if (labelType == LabelType.Bus) {
             binding.countDown.startCounter()
         }
 
@@ -142,8 +140,8 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         val existingLabelMap = mapLabels.associateBy { it.texts.first() }
         val newLabelMap = newMapLabels.associateBy { it.title }
 
-        val labelsToUpdate = mutableListOf<Pair<Label, KakaoMapLabel>>()
-        val labelsToAdd = mutableListOf<KakaoMapLabel>()
+        val labelsToUpdate = mutableListOf<Pair<Label, MapLabel>>()
+        val labelsToAdd = mutableListOf<MapLabel>()
         val labelsToRemove = mutableListOf<Label>()
 
         // 업데이트할 라벨과 삭제할 라벨 찾기
@@ -183,24 +181,24 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         val updateLabels = labelsToUpdate.map { it.first }.toTypedArray() + addLabels
 
         // 첫 호출시 버스가 모두 보이게 줌 조절
-        if (mapLabels.isEmpty() && labelType == MapConstants.LabelType.Bus) {
+        if (mapLabels.isEmpty() && labelType == LabelType.Bus) {
             kakaoMapManager.bounces(data as List<BusInfo>)
         }
 
         when (labelType) {
-            MapConstants.LabelType.Bus -> viewModel.busLabelLayer = updateLabels
-            MapConstants.LabelType.Station -> viewModel.stationLabelLayer = updateLabels
+            LabelType.Bus -> viewModel.busLabelLayer = updateLabels
+            LabelType.Station -> viewModel.stationLabelLayer = updateLabels
         }
 
         restoreSelectedInfoWindow(labelType)
     }
 
-    private fun restoreSelectedInfoWindow(labelType: MapConstants.LabelType) {
+    private fun restoreSelectedInfoWindow(labelType: LabelType) {
 
         viewModel.selectWindowInfoLabel?.let { label ->
             val targetLabels = when (labelType) {
-                MapConstants.LabelType.Bus -> viewModel.busLabelLayer
-                MapConstants.LabelType.Station -> viewModel.stationLabelLayer
+                LabelType.Bus -> viewModel.busLabelLayer
+                LabelType.Station -> viewModel.stationLabelLayer
             }
 
             targetLabels.find { it.texts.first() == label.texts.first() }?.let {
@@ -273,7 +271,7 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
                         label.position,
                         R.drawable.window_body,
                         R.drawable.window_tail,
-                        label.tag as MapConstants.LabelType
+                        label.tag as LabelType
                     )
                     kakaoMapManager.startTracking(label)
                 }

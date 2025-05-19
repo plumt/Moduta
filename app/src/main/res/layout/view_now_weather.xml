@@ -8,7 +8,7 @@
 
         <variable
             name="weather"
-            type="com.yun.seoul.moduta.model.weather.NowWeatherData" />
+            type="com.yun.seoul.domain.model.weather.NowWeather" />
 
         <variable
             name="isLoading"

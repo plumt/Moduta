@@ -1,11 +1,10 @@
-package com.yun.seoul.moduta.ui.components
+package com.yun.seoul.moduta.ui.custom
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.ViewDataBinding
-import com.google.android.material.snackbar.Snackbar
 import com.yun.seoul.moduta.R
 import com.yun.seoul.moduta.BR
 import com.yun.seoul.moduta.databinding.ViewSearchBarBinding

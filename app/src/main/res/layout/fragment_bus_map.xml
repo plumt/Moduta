@@ -21,14 +21,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <com.yun.seoul.moduta.ui.components.BusSearchBarView
+        <com.yun.seoul.moduta.ui.custom.BusSearchBarView
             android:id="@+id/search_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
             app:searchType="bus" />
 
-        <com.yun.seoul.moduta.ui.components.CountDownCircleView
+        <com.yun.seoul.moduta.ui.custom.CountDownCircleView
             android:id="@+id/count_down"
             android:layout_width="wrap_content"
             android:visibility="@{busMap.realtimeBusList.data != null ? View.VISIBLE : View.INVISIBLE}"

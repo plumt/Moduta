@@ -1,4 +1,4 @@
-package com.yun.seoul.moduta.ui.components
+package com.yun.seoul.moduta.ui.custom
 
 import android.content.Context
 import android.util.AttributeSet
