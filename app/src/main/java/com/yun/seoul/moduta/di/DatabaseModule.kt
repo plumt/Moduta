@@ -2,7 +2,7 @@ package com.yun.seoul.moduta.di
 
 import android.content.Context
 import androidx.room.Room
-import com.yun.seoul.data.local.db.BusDatabase
+import com.yun.seoul.data.local.db.ModutaDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,19 +16,23 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideBusDatabases(@ApplicationContext context: Context): BusDatabase {
+    fun provideBusDatabases(@ApplicationContext context: Context): ModutaDatabase {
         return Room.databaseBuilder(
             context,
-            BusDatabase::class.java,
+            ModutaDatabase::class.java,
             "bus_database"
         ).build()
     }
 
     @Provides
     @Singleton
-    fun provideBusRouteListDao(busDatabase: BusDatabase) = busDatabase.busRouteListDao()
+    fun provideBusRouteListDao(database: ModutaDatabase) = database.busRouteListDao()
 
     @Provides
     @Singleton
-    fun provideStationByRouteDao(busDatabase: BusDatabase) = busDatabase.stationByRouteDao()
+    fun provideStationByRouteDao(database: ModutaDatabase) = database.stationByRouteDao()
+
+    @Provides
+    @Singleton
+    fun provideSearchQueryDao(database: ModutaDatabase) = database.searchQueryDao()
 }

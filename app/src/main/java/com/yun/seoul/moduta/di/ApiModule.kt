@@ -7,6 +7,7 @@ import com.yun.seoul.data.datasource.bus.BusDataSourceImpl
 import com.yun.seoul.data.datasource.bus.BusLocalDataSource
 import com.yun.seoul.data.datasource.bus.BusLocalDataSourceImpl
 import com.yun.seoul.data.local.dao.BusRouteListDao
+import com.yun.seoul.data.local.dao.SearchQueryDao
 import com.yun.seoul.data.local.dao.StationByRouteDao
 import com.yun.seoul.data.remote.api.BusApiService
 import com.yun.seoul.data.repository.BusRepositoryImpl
@@ -75,8 +76,9 @@ object ApiModule {
     fun provideBusLocalDataSource(
         busRouteListDao: BusRouteListDao,
         stationByRouteDao: StationByRouteDao,
+        searchQueryDao: SearchQueryDao,
     ): BusLocalDataSource {
-        return BusLocalDataSourceImpl(busRouteListDao, stationByRouteDao)
+        return BusLocalDataSourceImpl(searchQueryDao, busRouteListDao, stationByRouteDao)
     }
 
 }

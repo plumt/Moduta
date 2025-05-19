@@ -1,12 +1,15 @@
 package com.yun.seoul.data.datasource.bus
 
 import com.yun.seoul.data.local.dao.BusRouteListDao
+import com.yun.seoul.data.local.dao.SearchQueryDao
 import com.yun.seoul.data.local.dao.StationByRouteDao
 import com.yun.seoul.data.local.entity.busRouteList.BusRouteListEntity
+import com.yun.seoul.data.local.entity.query.SearchQueryEntity
 import com.yun.seoul.data.local.entity.stationByRoute.StationByRouteEntity
 import javax.inject.Inject
 
 class BusLocalDataSourceImpl @Inject constructor(
+    private val searchQueryDao: SearchQueryDao,
     private val busRouteListDao: BusRouteListDao,
     private val stationByRouteDao: StationByRouteDao
 ) : BusLocalDataSource {
@@ -19,8 +22,12 @@ class BusLocalDataSourceImpl @Inject constructor(
         busRouteListDao.insertAll(busRoutes)
     }
 
-    override suspend fun hasFreshBusRouteList(strSrch: String): Boolean {
-        return busRouteListDao.hasFreshBusRouteList(strSrch)
+    override suspend fun isQueryFresh(searchQuery: String, searchType: String): Boolean {
+        return searchQueryDao.isQueryFresh(searchQuery, searchType)
+    }
+
+    override suspend fun recordSearchQuery(searchQuery: String, searchType: String) {
+        searchQueryDao.insertQuery(SearchQueryEntity(searchQuery, searchType))
     }
 
     override suspend fun getStationsByRoute(busRouteId: String): List<StationByRouteEntity> {

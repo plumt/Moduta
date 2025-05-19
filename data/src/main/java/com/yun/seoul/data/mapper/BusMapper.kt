@@ -149,7 +149,6 @@ class BusMapper {
                     firstBusTm = item.firstBusTm,
                     lastBusTm = item.lastBusTm,
                     corpNm = item.corpNm,
-                    lastUpdated = LocalDateTime.now()
                 )
             }
 

@@ -19,5 +19,4 @@ data class BusRouteListEntity(
     val firstBusTm: String,             // 금일 첫차 시간
     val lastBusTm: String,              // 금일 막차 시간
     val corpNm: String,                 // 운수사 명
-    val lastUpdated: LocalDateTime = LocalDateTime.now()
 )

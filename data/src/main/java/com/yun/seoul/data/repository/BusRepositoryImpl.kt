@@ -13,6 +13,7 @@ import com.yun.seoul.domain.model.bus.BusRouteStationDetail
 import com.yun.seoul.domain.repository.BusRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
@@ -90,20 +91,22 @@ class BusRepositoryImpl @Inject constructor(
 
     override suspend fun getBusRouteList(strSrch: String): Flow<List<BusRouteDetail>> =
         flow {
-
-            val localResult = busLocalDataSource.getBusRouteList(strSrch)
-            if (localResult.isNotEmpty()) {
-                // db에서 가져옴
-                val busRouteDetail = localResult.toBusRouteDetail()
-                emit(busRouteDetail)
+            if (busLocalDataSource.isQueryFresh(strSrch, "bus")) {
+                val result = busLocalDataSource.getBusRouteList(strSrch)
+                emit(result.toBusRouteDetail())
+                return@flow
+            }
+            val response = busDataSource.getBusRouteList(strSrch)
+            if (response.isSuccessful) {
+                response.body()?.msgBody?.itemList?.let { result ->
+                    busLocalDataSource.recordSearchQuery(strSrch, "bus")
+                    busLocalDataSource.insertBusRouteList(result.toBusRouteListEntity())
+                    emit(result.toBusRouteDetail())
+                }
             } else {
-                val response = busDataSource.getBusRouteList(strSrch)
-                if (response.isSuccessful) {
-                    response.body()?.msgBody?.itemList?.let { result ->
-                        busLocalDataSource.insertBusRouteList(result.toBusRouteListEntity())
-                        val busRouteDetail = result.toBusRouteDetail()
-                        emit(busRouteDetail)
-                    }
+                val localTempResult = busLocalDataSource.getBusRouteList(strSrch)
+                if (localTempResult.isNotEmpty()) {
+                    emit(localTempResult.toBusRouteDetail())
                 } else {
                     throw RuntimeException(response.message())
                 }
