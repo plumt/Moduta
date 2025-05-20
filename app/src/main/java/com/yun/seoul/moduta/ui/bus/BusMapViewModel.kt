@@ -17,10 +17,12 @@ import com.yun.seoul.moduta.manager.LocationManager
 import com.yun.seoul.moduta.model.UiState
 import com.yun.seoul.moduta.util.LocationPermissionUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -44,6 +46,10 @@ class BusMapViewModel @Inject constructor(
     private val _busStationList = MutableStateFlow<UiState<List<BusRouteStationDetail>>>(UiState())
     val busStationList = _busStationList.asStateFlow()
 
+    // 버스 경로
+    private val _busPathList = MutableStateFlow<UiState<List<BusInfo>>>(UiState())
+    val busPathList = _busPathList.asStateFlow()
+
     // 선택한 버스 데이터
     private val _selectedBusData = MutableStateFlow<String?>(null)
     val selectedBusData = _selectedBusData.asStateFlow()
@@ -58,7 +64,8 @@ class BusMapViewModel @Inject constructor(
     private val locationManager = LocationManager(application)
 
     // 위치 권한 체크
-    fun hasLocationPermission(): Boolean = LocationPermissionUtil.hasLocationPermissions(application)
+    fun hasLocationPermission(): Boolean =
+        LocationPermissionUtil.hasLocationPermissions(application)
 
     suspend fun getCurrentLocation() = locationManager.getCurrentLocation()
 
@@ -92,30 +99,33 @@ class BusMapViewModel @Inject constructor(
     }
 
     fun loadBusAndStationData(busRouteId: String) {
-        viewModelScope.launch {
-            busUseCase.getBusPosByRtid(busRouteId)
-                .combine(busUseCase.getStationByRoute(busRouteId)) { busResult, stationResult ->
-                    Pair(busResult, stationResult)
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            combine(
+                busUseCase.getBusPosByRtid(busRouteId),
+                busUseCase.getStationByRoute(busRouteId),
+                busUseCase.getRoutePath(busRouteId)
+            ) { busResult, stationResult, pathResult ->
+                Triple(busResult, stationResult, pathResult)
+            }
                 .onStart {
-                    Log.d("yslee","onStart")
                     _realtimeBusList.value = UiState.loading()
                     _busStationList.value = UiState.loading()
+                    _busPathList.value = UiState.loading()
                 }
                 .onEmpty {
-                    Log.d("yslee","onEmpty")
                     _realtimeBusList.value = UiState.empty()
                     _busStationList.value = UiState.empty()
+                    _busPathList.value = UiState.empty()
                 }
                 .catch { e ->
-                    Log.w("yslee","catch > ${e.message}")
                     _realtimeBusList.value = UiState.error(e.message ?: "loadBusAndStationData")
                     _busStationList.value = UiState.error(e.message ?: "loadBusAndStationData")
+                    _busPathList.value = UiState.error(e.message ?: "loadBusAndStationData")
                 }
-                .collect { (busResult, stationResult) ->
-                    Log.d("yslee","collect > $$busResult \n$stationResult")
+                .collect { (busResult, stationResult, pathResult) ->
                     _realtimeBusList.value = UiState.success(busResult)
                     _busStationList.value = UiState.success(stationResult)
+                    _busPathList.value = UiState.success(pathResult)
                     _selectedBusData.value = busRouteId
                 }
         }

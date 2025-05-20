@@ -52,6 +52,7 @@ class BusRepositoryImpl @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 
+    // 버스 실시간 위치
     override suspend fun getBusPosByRtid(busRouteId: String): Flow<List<BusInfo>> = flow {
         val response = busDataSource.getBusPosByRtid(busRouteId)
         if (response.isSuccessful) {
@@ -77,6 +78,7 @@ class BusRepositoryImpl @Inject constructor(
             }
         }.flowOn(Dispatchers.IO)
 
+    // 정류장 가져오기
     override suspend fun getStationByRoute(busRouteId: String): Flow<List<BusRouteStationDetail>> =
         flow {
             if (busLocalDataSource.isQueryFresh(busRouteId, "bus")) {
@@ -97,6 +99,7 @@ class BusRepositoryImpl @Inject constructor(
             }
         }.flowOn(Dispatchers.IO)
 
+    // 버스 번호로 검색
     override suspend fun getBusRouteList(strSrch: String): Flow<List<BusRouteDetail>> =
         flow {
             if (busLocalDataSource.isQueryFresh(strSrch, "bus")) {

@@ -5,13 +5,16 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.lifecycleScope
 import com.kakao.vectormap.GestureType
 import com.kakao.vectormap.KakaoMap
+import com.kakao.vectormap.KakaoMap.OnZoneEventListener
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.PoiScale
 import com.kakao.vectormap.label.Label
+import com.kakao.vectormap.zone.ZoneEvent
 import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.moduta.BR
@@ -26,6 +29,7 @@ import com.yun.seoul.moduta.databinding.FragmentBusMapBinding
 import com.yun.seoul.moduta.manager.KakaoMapManager
 import com.yun.seoul.domain.constant.MapConstants.LabelType
 import com.yun.seoul.domain.model.map.MapLabel
+import com.yun.seoul.domain.model.map.MapRouteLine
 import com.yun.seoul.moduta.model.handleState
 import com.yun.seoul.moduta.ui.custom.BusSearchBarView
 import com.yun.seoul.moduta.util.ApiUtil.apiResultEmpty
@@ -50,8 +54,9 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         super.onCreate(savedInstanceState)
 
         arguments?.let {
-            viewModel.currentLocation = LatLng.from(it.getDouble("latitude"),it.getDouble("longitude"))
-            Log.d("yslee","viewModel.currentLocation > ${viewModel.currentLocation}")
+            viewModel.currentLocation =
+                LatLng.from(it.getDouble("latitude"), it.getDouble("longitude"))
+            Log.d("yslee", "viewModel.currentLocation > ${viewModel.currentLocation}")
         }
     }
 
@@ -65,6 +70,16 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
     }
 
     private fun setupObserve() {
+
+        viewModel.busPathList.observeWithLifecycle(viewLifecycleOwner) { result ->
+            result.handleState(
+                onSuccess = {
+                    it.takeUnless { it.isNullOrEmpty() }?.let {
+                        kakaoMapManager.addRouteLine(convertRouteLine(it))
+                    }
+                }
+            )
+        }
 
         viewModel.searchBusList.observeWithLifecycle(viewLifecycleOwner) { result ->
             result.handleState(
@@ -124,6 +139,10 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         }
     }
 
+    private fun convertRouteLine(busInfo: List<BusInfo>): List<MapRouteLine> =
+        busInfo.map { MapRouteLine(it.latitudeDouble, it.longitudeDouble) }
+
+
     private fun <T> updateMapLabels(
         data: List<T>,
         labelType: LabelType,
@@ -147,7 +166,7 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         // 업데이트할 라벨과 삭제할 라벨 찾기
         existingLabelMap.forEach { (text, existingLabel) ->
             val newLabel = newLabelMap[text]
-            if(newLabel != null) {
+            if (newLabel != null) {
                 labelsToUpdate.add(existingLabel to newLabel)
             } else {
                 labelsToRemove.add(existingLabel)
@@ -167,11 +186,14 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
 
         // 기존 라벨 위치 업데이트
         labelsToUpdate.forEach { (existingLabel, newLabel) ->
-            kakaoMapManager.updateLabel(existingLabel, LatLng.from(newLabel.latitude, newLabel.longitude))
+            kakaoMapManager.updateLabel(
+                existingLabel,
+                LatLng.from(newLabel.latitude, newLabel.longitude)
+            )
         }
 
         // 새 라벨 추가
-        val addLabels = if(labelsToAdd.isNotEmpty()){
+        val addLabels = if (labelsToAdd.isNotEmpty()) {
             kakaoMapManager.addLabel(labelsToAdd) ?: emptyArray()
         } else {
             emptyArray()
@@ -248,11 +270,12 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         override fun onMapReady(kakaoMap: KakaoMap) {
             kakaoMap.apply {
                 addFont(R.font.woowahan)
-                setGestureEnable(GestureType.Tilt,false)
+                setGestureEnable(GestureType.Tilt, false)
                 poiScale = PoiScale.SMALL
 //                trackingManager?.startTracking(viewModel.busLabelLayer[0].layer.getLabel())
 
             }
+
             kakaoMapManager = KakaoMapManager(kakaoMap)
 
             kakaoMap.setOnCameraMoveStartListener { kakaoMap, gestureType ->
@@ -278,7 +301,6 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
                 true
             }
         }
-
 
 
         override fun getPosition() = viewModel.currentLocation

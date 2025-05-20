@@ -12,6 +12,10 @@ object MapConstants {
         val WINDOW_TAIL_RES_ID = R.drawable.window_tail
     }
 
+    object RouteLineImageResId {
+        val ARROW_ID = R.drawable.route_pattern_arrow
+    }
+
     object InfoWindowOffset{
         const val BUS_TAIL_OFFSET_Y = -95f
         const val STATION_TAIL_OFFSET_Y = -50f
