@@ -12,5 +12,4 @@ interface BusLocalDataSource {
 
     suspend fun getStationsByRoute(busRouteId: String): List<StationByRouteEntity>
     suspend fun insertStationsByRoute(stations: List<StationByRouteEntity>)
-    suspend fun hasFreshStationData(busRouteId: String): Boolean
 }

@@ -17,28 +17,23 @@ class BusLocalDataSourceImpl @Inject constructor(
     override suspend fun getBusRouteList(strSrch: String): List<BusRouteListEntity> {
         return busRouteListDao.getBusRouteList(strSrch)
     }
-
     override suspend fun insertBusRouteList(busRoutes: List<BusRouteListEntity>) {
         busRouteListDao.insertAll(busRoutes)
     }
 
+
     override suspend fun isQueryFresh(searchQuery: String, searchType: String): Boolean {
         return searchQueryDao.isQueryFresh(searchQuery, searchType)
     }
-
     override suspend fun recordSearchQuery(searchQuery: String, searchType: String) {
         searchQueryDao.insertQuery(SearchQueryEntity(searchQuery, searchType))
     }
 
+
     override suspend fun getStationsByRoute(busRouteId: String): List<StationByRouteEntity> {
         return stationByRouteDao.getStationsByRoute(busRouteId)
     }
-
     override suspend fun insertStationsByRoute(stations: List<StationByRouteEntity>) {
         stationByRouteDao.insertAll(stations)
-    }
-
-    override suspend fun hasFreshStationData(busRouteId: String): Boolean {
-        return stationByRouteDao.hasFreshStationData(busRouteId)
     }
 }

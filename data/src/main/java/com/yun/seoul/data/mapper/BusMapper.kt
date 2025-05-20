@@ -1,6 +1,7 @@
 package com.yun.seoul.data.mapper
 
 import com.yun.seoul.data.local.entity.busRouteList.BusRouteListEntity
+import com.yun.seoul.data.local.entity.stationByRoute.StationByRouteEntity
 import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
@@ -152,6 +153,53 @@ class BusMapper {
                 )
             }
 
+        @JvmName("stationByRouteEntityToBusRouteStationDetail")
+        fun List<StationByRouteEntity>.toBusRouteStationDetail(): List<BusRouteStationDetail> =
+            map { entity ->
+                BusRouteStationDetail(
+                    busRouteAbrv = entity.busRouteAbrv,
+                    busRouteId = entity.busRouteId,
+                    section = entity.section,
+                    station = entity.station,
+                    stationNm = entity.stationNm,
+                    gpsX = entity.gpsX,
+                    gpsY = entity.gpsY,
+                    direction = entity.direction,
+                    fullSectDist = entity.fullSectDist,
+                    stationNo = entity.stationNo,
+                    routeType = entity.routeType,
+                    beginTm = entity.beginTm,
+                    lastTm = entity.lastTm,
+                    trnstnid = entity.trnstnid,
+                    sectSpd = entity.sectSpd,
+                    arsId = entity.arsId,
+                    transYn = entity.transYn
+                )
+            }
 
+        @JvmName("stationByRouteResponseToStationByRouteEntity")
+        fun List<com.yun.seoul.data.model.bus.stationByRoute.ItemList>.toStationByRouteEntity(): List<StationByRouteEntity> =
+            map { item ->
+                StationByRouteEntity(
+                    id = "${item.busRouteId}_${item.station}", // 복합 키 생성
+                    busRouteAbrv = item.busRouteAbrv,
+                    busRouteId = item.busRouteId,
+                    section = item.section,
+                    station = item.station,
+                    stationNm = item.stationNm,
+                    gpsX = item.gpsX,
+                    gpsY = item.gpsY,
+                    direction = item.direction,
+                    fullSectDist = item.fullSectDist,
+                    stationNo = item.stationNo,
+                    routeType = item.routeType,
+                    beginTm = item.beginTm,
+                    lastTm = item.lastTm,
+                    trnstnid = item.trnstnid,
+                    sectSpd = item.sectSpd,
+                    arsId = item.arsId,
+                    transYn = item.transYn,
+                )
+            }
     }
 }

@@ -14,6 +14,6 @@ interface StationByRouteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(stations: List<StationByRouteEntity>)
 
-    @Query("SELECT EXISTS(SELECT 1 FROM station_by_route WHERE `busRouteId` = :busRouteId)")
-    suspend fun hasFreshStationData(busRouteId: String): Boolean
+//    @Query("SELECT EXISTS(SELECT 1 FROM station_by_route WHERE `busRouteId` = :busRouteId)")
+//    suspend fun hasFreshStationData(busRouteId: String): Boolean
 }

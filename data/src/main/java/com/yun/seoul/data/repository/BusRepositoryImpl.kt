@@ -7,6 +7,7 @@ import com.yun.seoul.data.mapper.BusMapper.Companion.toBusInfoList
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusRouteDetail
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusRouteListEntity
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusRouteStationDetail
+import com.yun.seoul.data.mapper.BusMapper.Companion.toStationByRouteEntity
 import com.yun.seoul.domain.model.bus.BusInfo
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
@@ -78,22 +79,28 @@ class BusRepositoryImpl @Inject constructor(
 
     override suspend fun getStationByRoute(busRouteId: String): Flow<List<BusRouteStationDetail>> =
         flow {
+            if (busLocalDataSource.isQueryFresh(busRouteId, "bus")) {
+                emit(busLocalDataSource.getStationsByRoute(busRouteId).toBusRouteStationDetail())
+                return@flow
+            }
             val response = busDataSource.getStationByRoute(busRouteId)
             if (response.isSuccessful) {
                 response.body()?.msgBody?.itemList?.let { result ->
-                    val busRouteStationDetail = result.toBusRouteStationDetail()
-                    emit(busRouteStationDetail)
+                    busLocalDataSource.recordSearchQuery(busRouteId, "bus")
+                    busLocalDataSource.insertStationsByRoute(result.toStationByRouteEntity())
+                    emit(result.toBusRouteStationDetail())
                 }
             } else {
-                throw RuntimeException(response.message())
+                busLocalDataSource.getStationsByRoute(busRouteId)
+                    .ifEmpty { throw RuntimeException(response.message()) }
+                    .run { emit(toBusRouteStationDetail()) }
             }
         }.flowOn(Dispatchers.IO)
 
     override suspend fun getBusRouteList(strSrch: String): Flow<List<BusRouteDetail>> =
         flow {
             if (busLocalDataSource.isQueryFresh(strSrch, "bus")) {
-                val result = busLocalDataSource.getBusRouteList(strSrch)
-                emit(result.toBusRouteDetail())
+                emit(busLocalDataSource.getBusRouteList(strSrch).toBusRouteDetail())
                 return@flow
             }
             val response = busDataSource.getBusRouteList(strSrch)
@@ -104,12 +111,9 @@ class BusRepositoryImpl @Inject constructor(
                     emit(result.toBusRouteDetail())
                 }
             } else {
-                val localTempResult = busLocalDataSource.getBusRouteList(strSrch)
-                if (localTempResult.isNotEmpty()) {
-                    emit(localTempResult.toBusRouteDetail())
-                } else {
-                    throw RuntimeException(response.message())
-                }
+                busLocalDataSource.getBusRouteList(strSrch)
+                    .ifEmpty { throw RuntimeException(response.message()) }
+                    .run { emit(toBusRouteDetail()) }
             }
         }.flowOn(Dispatchers.IO)
 
