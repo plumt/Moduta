@@ -1,13 +1,14 @@
 package com.yun.seoul.domain.repository
 
 import com.yun.seoul.domain.model.bus.BusInfo
+import com.yun.seoul.domain.model.bus.BusInfoDetail
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
 import kotlinx.coroutines.flow.Flow
 
 interface BusRepository {
     suspend fun getBusPosByRouteSt(busRouteId: String, startOrd: String, endOrd: String): Flow<List<BusInfo>>
-    suspend fun getBusPosByVehId(vehId: String): Flow<List<BusInfo>>
+    suspend fun getBusPosByVehId(vehId: String): Flow<BusInfoDetail>
     suspend fun getBusPosByRtid(busRouteId: String): Flow<List<BusInfo>>
 
 

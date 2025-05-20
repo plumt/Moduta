@@ -3,9 +3,11 @@ package com.yun.seoul.moduta.ui.bus
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.kakao.vectormap.GestureType
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMap.OnZoneEventListener
@@ -49,6 +51,7 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
     override fun onBackEvent() {}
 
     private lateinit var kakaoMapManager: KakaoMapManager
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,9 +70,21 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
         setupCountDown()
         setupSearchBar()
         setupObserve()
+        initialBottomSheet()
     }
 
     private fun setupObserve() {
+
+        viewModel.selectedBusInfoDetail.observeWithLifecycle(viewLifecycleOwner) { result ->
+            result.handleState(
+                onSuccess = {
+                    if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
+                        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+                    }
+                }
+            )
+
+        }
 
         viewModel.busPathList.observeWithLifecycle(viewLifecycleOwner) { result ->
             result.handleState(
@@ -136,6 +151,21 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
                     )
                 }
             )
+        }
+    }
+
+    // 바텀시트 셋팅
+    private fun initialBottomSheet() {
+        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet.bottomSheet).apply {
+            addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+                override fun onSlide(bottomSheet: View, slideOffset: Float) {
+
+                }
+
+                override fun onStateChanged(bottomSheet: View, newState: Int) {
+                }
+            })
+            state = BottomSheetBehavior.STATE_HIDDEN
         }
     }
 
@@ -288,6 +318,12 @@ class BusMapFragment : BaseFragment<FragmentBusMapBinding, BusMapViewModel>() {
                     kakaoMapManager.removeInfoWindow()
                     kakaoMapManager.stopTracking()
                 } else {
+
+                    viewModel.realtimeBusList.value.data?.find { it.plainNo == label.texts.first() }?.vehId?.let {
+//                        Log.d("yslee","버스 번호 plainNo > ${it.plainNo} vehId > ${it.vehId}")
+                        viewModel.getBusPosByVehId(it)
+                    }
+
                     viewModel.selectWindowInfoLabel = label
                     kakaoMapManager.addInfoWindow(
                         label.texts.first(),

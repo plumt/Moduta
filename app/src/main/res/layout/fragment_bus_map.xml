@@ -28,6 +28,13 @@
             app:layout_constraintTop_toTopOf="parent"
             app:searchType="bus" />
 
+        <include
+            android:id="@+id/bottom_sheet"
+            app:layout_constraintBottom_toBottomOf="parent"
+            layout="@layout/view_bottom_sheet_bus_info"
+            app:busInfoDetail="@{busMap.selectedBusInfoDetail.data}"
+            app:isVisible="@{busMap.selectedBusInfoDetail.isEmpty() == false}" />
+
         <com.yun.seoul.moduta.ui.custom.CountDownCircleView
             android:id="@+id/count_down"
             android:layout_width="wrap_content"

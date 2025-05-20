@@ -3,6 +3,7 @@ package com.yun.seoul.moduta.ui.home
 import android.Manifest
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,6 +17,7 @@ import com.yun.seoul.moduta.constant.MapConstants.DefaultLocation.LATITUDE
 import com.yun.seoul.moduta.constant.MapConstants.DefaultLocation.LONGITUDE
 import com.yun.seoul.moduta.databinding.FragmentHomeBinding
 import com.yun.seoul.moduta.util.LocationPermissionUtil
+import com.yun.seoul.moduta.util.Util.observeWithLifecycle
 import com.yun.seoul.moduta.util.Util.setStatusBarColor
 import com.yun.seoul.moduta.util.setOnSingleClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -63,6 +65,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>() {
         binding.btnBus.setOnSingleClickListener(listener = onSingleClickListener)
 
         checkLocationPermissionAndLoadWeather()
+
+        viewModel.nowWeather.observeWithLifecycle(viewLifecycleOwner){ result ->
+            Log.d("yslee","nowWeather > $result")
+        }
     }
 
     private fun checkLocationPermissionAndLoadWeather() {

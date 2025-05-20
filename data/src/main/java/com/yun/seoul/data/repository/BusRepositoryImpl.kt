@@ -3,18 +3,19 @@ package com.yun.seoul.data.repository
 import com.yun.seoul.data.datasource.bus.BusDataSource
 import com.yun.seoul.data.datasource.bus.BusLocalDataSource
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusInfo
+import com.yun.seoul.data.mapper.BusMapper.Companion.toBusInfoDetail
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusInfoList
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusRouteDetail
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusRouteListEntity
 import com.yun.seoul.data.mapper.BusMapper.Companion.toBusRouteStationDetail
 import com.yun.seoul.data.mapper.BusMapper.Companion.toStationByRouteEntity
 import com.yun.seoul.domain.model.bus.BusInfo
+import com.yun.seoul.domain.model.bus.BusInfoDetail
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
 import com.yun.seoul.domain.repository.BusRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
@@ -40,12 +41,12 @@ class BusRepositoryImpl @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun getBusPosByVehId(vehId: String): Flow<List<BusInfo>> = flow {
+    override suspend fun getBusPosByVehId(vehId: String): Flow<BusInfoDetail> = flow {
         val response = busDataSource.getBusPosByVehId(vehId)
         if (response.isSuccessful) {
             response.body()?.msgBody?.itemList?.let { result ->
-                val busInfo = result.toBusInfoList()
-                emit(busInfo)
+                val busInfoDetail = result.toBusInfoDetail()
+                emit(busInfoDetail)
             }
         } else {
             throw RuntimeException(response.message())

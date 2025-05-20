@@ -3,6 +3,7 @@ package com.yun.seoul.data.mapper
 import com.yun.seoul.data.local.entity.busRouteList.BusRouteListEntity
 import com.yun.seoul.data.local.entity.stationByRoute.StationByRouteEntity
 import com.yun.seoul.domain.model.bus.BusInfo
+import com.yun.seoul.domain.model.bus.BusInfoDetail
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
 import java.time.LocalDateTime
@@ -23,16 +24,23 @@ class BusMapper {
                 )
             }
 
-        @JvmName("busPosByVehIdToBusInfo")
-        fun List<com.yun.seoul.data.model.bus.busPosByVehId.ItemList>.toBusInfoList(): List<BusInfo> =
+        @JvmName("busPosByVehIdToBusInfoDetail")
+        fun List<com.yun.seoul.data.model.bus.busPosByVehId.ItemList>.toBusInfoDetail(): BusInfoDetail =
             map { item ->
-                BusInfo(
-                    latitude = item.tmY,
-                    longitude = item.tmX,
+                BusInfoDetail(
+                    vehId = item.vehId,
+                    stId = item.stId,
+                    busType = item.busType,
+                    congetion = item.congetion,
+                    dataTm = item.dataTm,
+                    isFullFlag = item.isFullFlag,
+                    lastStnId = item.lastStnId,
                     plainNo = item.plainNo,
-                    vehId = item.vehId
+                    stopFlag = item.stopFlag,
+                    tmX = item.tmX,
+                    tmY = item.tmY
                 )
-            }
+            }.first()
 
         @JvmName("busPosByRtidToBusInfo")
         fun List<com.yun.seoul.data.model.bus.busPosByRtid.ItemList>.toBusInfoList(): List<BusInfo> =

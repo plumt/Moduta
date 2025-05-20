@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.label.Label
 import com.yun.seoul.domain.model.bus.BusInfo
+import com.yun.seoul.domain.model.bus.BusInfoDetail
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
 import com.yun.seoul.domain.usecase.BusUseCase
@@ -21,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEmpty
@@ -50,7 +52,11 @@ class BusMapViewModel @Inject constructor(
     private val _busPathList = MutableStateFlow<UiState<List<BusInfo>>>(UiState())
     val busPathList = _busPathList.asStateFlow()
 
-    // 선택한 버스 데이터
+    // 선택한 버스 상세 데이터
+    private val _selectedBusInfoDetail = MutableStateFlow<UiState<BusInfoDetail>>(UiState())
+    val selectedBusInfoDetail = _selectedBusInfoDetail.asStateFlow()
+
+    // 선택한 버스 아이디(RouteId)
     private val _selectedBusData = MutableStateFlow<String?>(null)
     val selectedBusData = _selectedBusData.asStateFlow()
 
@@ -98,6 +104,18 @@ class BusMapViewModel @Inject constructor(
         }
     }
 
+    // 버스 상세 데이터
+    fun getBusPosByVehId(vehId: String){
+        viewModelScope.launch {
+            busUseCase.getBusPosByVehId(vehId)
+                .onStart { _selectedBusInfoDetail.value = UiState.loading() }
+                .onEmpty { _selectedBusInfoDetail.value = UiState.empty() }
+                .catch { e -> _selectedBusInfoDetail.value = UiState.error(e.message ?: "getBusPosByVehId error") }
+                .collect { r -> _selectedBusInfoDetail.value = UiState.success(r) }
+        }
+    }
+
+    // 최초 검색
     fun loadBusAndStationData(busRouteId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             combine(

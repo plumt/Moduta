@@ -1,6 +1,7 @@
 package com.yun.seoul.domain.usecase
 
 import com.yun.seoul.domain.model.bus.BusInfo
+import com.yun.seoul.domain.model.bus.BusInfoDetail
 import com.yun.seoul.domain.model.bus.BusRouteDetail
 import com.yun.seoul.domain.model.bus.BusRouteStationDetail
 import com.yun.seoul.domain.repository.BusRepository
@@ -19,7 +20,7 @@ class BusUseCase @Inject constructor(
         return busRepository.getBusPosByRouteSt(busRouteId, startOrd, endOrd)
     }
 
-    suspend fun getBusPosByVehId(vehId: String): Flow<List<BusInfo>> {
+    suspend fun getBusPosByVehId(vehId: String): Flow<BusInfoDetail> {
         return busRepository.getBusPosByVehId(vehId)
     }
 

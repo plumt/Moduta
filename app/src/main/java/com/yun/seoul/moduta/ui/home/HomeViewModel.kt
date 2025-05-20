@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -68,7 +69,11 @@ class HomeViewModel @Inject constructor(
                 .onStart { _nowWeather.value = UiState.loading() }
                 .onEmpty { _nowWeather.value = UiState.empty() }
                 .catch { e -> _nowWeather.value = UiState.error(e.message ?: "getNowWeather") }
-                .collect { r -> _nowWeather.value = UiState.success(r) }
+                .onCompletion { e -> Log.d("yslee","날씨 가져오기 완료 > ${e?.message}") }
+                .collect { r ->
+                    Log.d("yslee","getNowWeather > $r")
+                    _nowWeather.value = UiState.success(r)
+                }
         }
     }
 }
